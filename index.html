@@ -30,12 +30,13 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // --- CONFIG: paths to your data files (array JSON, not GeoJSON) ---
-    const DATA_VERSION = "v1-2025-08-15"; // bump to bust cache
-    const STATIONS_URL = `data/station.geojson?v=${DATA_VERSION}`; // singular, per your repo
+    // -------- configure your data paths here --------
+    const DATA_VERSION = "2025-08-15-3";               // bump to bust cache
+    const STATIONS_URL = `data/stations.geojson?v=${DATA_VERSION}`;
     const LINES_URL    = `data/lines.geojson?v=${DATA_VERSION}`;
+    // If your filenames are different, change the two lines above.
 
-    // --- Map setup ---
+    // -------- map setup --------
     const map = L.map('map').setView([12.9716, 77.5946], 11);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -45,9 +46,9 @@
     const lineLayers = L.layerGroup().addTo(map);
     const stationLayers = L.layerGroup().addTo(map);
 
-    let STATIONS = [];           // [{id,name,lat,lng,lines,operational,interchange}]
-    let STATIONS_BY_ID = {};     // id -> station
-    let LINES = [];              // [{key,name,color,operational,stations:[ids]}]
+    let STATIONS = [];
+    let STATIONS_BY_ID = {};
+    let LINES = [];
     let showFull = true;
 
     document.getElementById('fullNetworkToggle').addEventListener('change', (e) => {
@@ -65,7 +66,7 @@
       lineLayers.clearLayers();
       stationLayers.clearLayers();
 
-      // Stations (respect toggle)
+      // stations
       STATIONS.forEach(s => {
         const visible = showFull ? true : (s.operational === true);
         if (!visible) return;
@@ -89,7 +90,7 @@
         marker.addTo(stationLayers);
       });
 
-      // Lines from ordered station IDs (respect toggle)
+      // lines (built from ordered station IDs)
       LINES.filter(l => showFull ? true : (l.operational === true)).forEach(line => {
         const coords = [];
         for (const id of (line.stations || [])) {
@@ -97,17 +98,15 @@
           if (s) coords.push([s.lat, s.lng]);
         }
         if (coords.length >= 2) {
-          L.polyline(coords, { color: line.color || '#555', weight: 5, opacity: 0.9 })
-           .addTo(lineLayers);
+          L.polyline(coords, { color: line.color || '#555', weight: 5, opacity: 0.9 }).addTo(lineLayers);
         }
       });
     }
 
     Promise.all([fetchJSON(STATIONS_URL), fetchJSON(LINES_URL)])
       .then(([stations, lines]) => {
-        // Expecting arrays, not GeoJSON FeatureCollections
         if (!Array.isArray(stations) || !Array.isArray(lines)) {
-          throw new Error("Data format mismatch: station.geojson and lines.geojson must be arrays.");
+          throw new Error("Data format mismatch: expected arrays in stations.json and lines.json.");
         }
         STATIONS = stations;
         STATIONS_BY_ID = Object.fromEntries(stations.map(s => [s.id, s]));
@@ -116,10 +115,10 @@
       })
       .catch(err => {
         console.error(err);
-        alert('Failed to load metro data. See console for details.');
+        alert('Failed to load metro data. Check Console for details.');
       });
 
-    // Legend
+    // legend
     const legend = L.control({ position: 'bottomleft' });
     legend.onAdd = function() {
       const div = L.DomUtil.create('div', 'legend');
