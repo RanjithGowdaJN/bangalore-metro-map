@@ -1,123 +1,127 @@
-
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bangalore Metro Map — V0</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bangalore Metro Map — V1</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
     html, body { height:100%; margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
-    #topbar {
-      position: fixed; top: 0; left: 0; right: 0;
-      background: #111; color: #fff; padding: 10px 12px; z-index: 1000;
-      display:flex; gap:12px; align-items:center; flex-wrap:wrap;
-    }
+    #topbar { position: fixed; top:0; left:0; right:0; background:#111; color:#fff; padding:10px 12px; z-index:1000; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
     #map { position:absolute; top:56px; bottom:0; left:0; right:0; }
     .pill { background:#1f2937; border-radius:999px; padding:6px 10px; display:flex; align-items:center; gap:8px; font-size:14px; }
-    .legend { background:#fff; padding:8px 10px; border-radius:8px; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    .legend { background:#fff; padding:8px 10px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.1); }
     .legend h4 { margin:0 0 6px 0; font-size:14px; }
     .legend .item { display:flex; align-items:center; gap:8px; margin:4px 0; }
-    .legend .swatch { width:14px; height:14px; border-radius:3px; display:inline-block; }
-    .toggle { cursor:pointer; }
+    .legend .swatch { width:14px; height:14px; border-radius:3px; }
     .leaflet-popup-content { font-size:14px; }
   </style>
 </head>
 <body>
   <div id="topbar">
-    <div style="font-weight:600;">BangaloreMetroMap.com — V0</div>
-    <label class="pill toggle">
-      <input type="checkbox" id="fullNetworkToggle" checked>
+    <div style="font-weight:600;">BangaloreMetroMap.com — V1</div>
+    <label class="pill">
+      <input type="checkbox" id="fullNetworkToggle" checked />
       <span>Show full network (incl. upcoming)</span>
     </label>
   </div>
+
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map').setView([12.9716, 77.5946], 11); // Center: Bangalore
+    // --- CONFIG: paths to your data files (array JSON, not GeoJSON) ---
+    const DATA_VERSION = "v1-2025-08-15"; // bump to bust cache
+    const STATIONS_URL = `data/station.geojson?v=${DATA_VERSION}`; // singular, per your repo
+    const LINES_URL    = `data/lines.geojson?v=${DATA_VERSION}`;
 
-    // OSM background
+    // --- Map setup ---
+    const map = L.map('map').setView([12.9716, 77.5946], 11);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Layers
     const lineLayers = L.layerGroup().addTo(map);
     const stationLayers = L.layerGroup().addTo(map);
 
-    // State
-    let showFull = true; // default: full network checked
+    let STATIONS = [];           // [{id,name,lat,lng,lines,operational,interchange}]
+    let STATIONS_BY_ID = {};     // id -> station
+    let LINES = [];              // [{key,name,color,operational,stations:[ids]}]
+    let showFull = true;
 
-    const toggle = document.getElementById('fullNetworkToggle');
-    toggle.addEventListener('change', () => {
-      showFull = toggle.checked;
+    document.getElementById('fullNetworkToggle').addEventListener('change', (e) => {
+      showFull = e.target.checked;
       render();
     });
 
-    async function loadJSON(url) {
-      const res = await fetch(url);
+    async function fetchJSON(url) {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status}`);
       return res.json();
     }
-
-    let LINES = null, STATIONS = null;
 
     function render() {
       lineLayers.clearLayers();
       stationLayers.clearLayers();
 
-      // Draw lines
-      L.geoJSON(LINES, {
-        filter: (f) => showFull ? true : (f.properties.operational === true),
-        style: (f) => ({ color: f.properties.color, weight: 5, opacity: 0.9 })
-      }).addTo(lineLayers);
+      // Stations (respect toggle)
+      STATIONS.forEach(s => {
+        const visible = showFull ? true : (s.operational === true);
+        if (!visible) return;
 
-      // Draw stations
-      const stationMarker = (feature, latlng) => {
-        const op = feature.properties.operational;
-        const marker = L.circleMarker(latlng, {
+        const marker = L.circleMarker([s.lat, s.lng], {
           radius: 5,
-          color: op ? '#000' : '#666',
+          color: s.operational ? '#000' : '#666',
           weight: 1,
-          fillColor: op ? '#fff' : '#bbb',
+          fillColor: s.operational ? '#fff' : '#bbb',
           fillOpacity: 1
-        });
-        const p = feature.properties;
-        const lines = (p.lines || []).join(', ');
-        let timing = '';
-        if (p.first_train_up) {
-          timing = `<div><strong>First</strong> ${p.first_train_up} / <strong>Last</strong> ${p.last_train_up}</div>`;
-        } else {
-          timing = `<div>Timings: TBD</div>`;
-        }
-        marker.bindPopup(`<div style="min-width:220px">
-          <div style="font-weight:600;margin-bottom:4px">${p.name}</div>
-          <div>${lines}</div>
-          ${timing}
-          <div style="margin-top:6px; font-size:12px; color:#555">Operational: ${op ? 'Yes' : 'No (upcoming)'}</div>
-        </div>`);
-        return marker;
-      };
+        }).bindPopup(`
+          <div style="min-width:220px">
+            <div style="font-weight:600;margin-bottom:4px">${s.name}</div>
+            <div>Lines: ${(s.lines || []).join(', ')}</div>
+            <div style="margin-top:6px; font-size:12px; color:#555">
+              Operational: ${s.operational ? 'Yes' : 'No (upcoming)'}
+            </div>
+          </div>
+        `);
 
-      L.geoJSON(STATIONS, {
-        filter: (f) => showFull ? true : (f.properties.operational === True || f.properties.operational === true),
-        pointToLayer: stationMarker
-      }).addTo(stationLayers);
+        marker.addTo(stationLayers);
+      });
+
+      // Lines from ordered station IDs (respect toggle)
+      LINES.filter(l => showFull ? true : (l.operational === true)).forEach(line => {
+        const coords = [];
+        for (const id of (line.stations || [])) {
+          const s = STATIONS_BY_ID[id];
+          if (s) coords.push([s.lat, s.lng]);
+        }
+        if (coords.length >= 2) {
+          L.polyline(coords, { color: line.color || '#555', weight: 5, opacity: 0.9 })
+           .addTo(lineLayers);
+        }
+      });
     }
 
-    Promise.all([
-      loadJSON('data/lines.geojson'),
-      loadJSON('data/stations.geojson')
-    ]).then(([lines, stations]) => {
-      LINES = lines;
-      STATIONS = stations;
-      render();
-    });
+    Promise.all([fetchJSON(STATIONS_URL), fetchJSON(LINES_URL)])
+      .then(([stations, lines]) => {
+        // Expecting arrays, not GeoJSON FeatureCollections
+        if (!Array.isArray(stations) || !Array.isArray(lines)) {
+          throw new Error("Data format mismatch: station.geojson and lines.geojson must be arrays.");
+        }
+        STATIONS = stations;
+        STATIONS_BY_ID = Object.fromEntries(stations.map(s => [s.id, s]));
+        LINES = lines;
+        render();
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Failed to load metro data. See console for details.');
+      });
 
     // Legend
-    const legend = L.control({position: 'bottomleft'});
-    legend.onAdd = function(map) {
+    const legend = L.control({ position: 'bottomleft' });
+    legend.onAdd = function() {
       const div = L.DomUtil.create('div', 'legend');
       div.innerHTML = `
         <h4>Lines</h4>
