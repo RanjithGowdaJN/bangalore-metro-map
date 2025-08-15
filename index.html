@@ -30,11 +30,10 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // -------- configure your data paths here --------
-    const DATA_VERSION = "2025-08-15-3";               // bump to bust cache
-    const STATIONS_URL = `data/stations.geojson?v=${DATA_VERSION}`;
+    // -------- configure your data paths EXACTLY as in repo --------
+    const DATA_VERSION = "2025-08-15-4"; // bump to bust cache
+    const STATIONS_URL = `data/stations.geojson?v=${DATA_VERSION}`; // <-- plural
     const LINES_URL    = `data/lines.geojson?v=${DATA_VERSION}`;
-    // If your filenames are different, change the two lines above.
 
     // -------- map setup --------
     const map = L.map('map').setView([12.9716, 77.5946], 11);
@@ -90,7 +89,7 @@
         marker.addTo(stationLayers);
       });
 
-      // lines (built from ordered station IDs)
+      // lines from ordered station IDs
       LINES.filter(l => showFull ? true : (l.operational === true)).forEach(line => {
         const coords = [];
         for (const id of (line.stations || [])) {
@@ -105,8 +104,9 @@
 
     Promise.all([fetchJSON(STATIONS_URL), fetchJSON(LINES_URL)])
       .then(([stations, lines]) => {
+        // Expect arrays (not GeoJSON FeatureCollections)
         if (!Array.isArray(stations) || !Array.isArray(lines)) {
-          throw new Error("Data format mismatch: expected arrays in stations.json and lines.json.");
+          throw new Error("Data format mismatch: expected arrays in stations.geojson & lines.geojson.");
         }
         STATIONS = stations;
         STATIONS_BY_ID = Object.fromEntries(stations.map(s => [s.id, s]));
