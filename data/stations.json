@@ -1,0 +1,917 @@
+[
+  {
+    "id": "ATTIGUPPE",
+    "name": "Attiguppe",
+    "lat": 12.961864250000001,
+    "lng": 77.5335771875,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "BAIYAPPANAHALLI",
+    "name": "Baiyappanahalli",
+    "lat": 12.9906891625,
+    "lng": 77.6523849875,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "BANASHANKARI",
+    "name": "Banashankari",
+    "lat": 12.915220699999999,
+    "lng": 77.5736047875,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "BENNIGANAHALLI",
+    "name": "Benniganahalli",
+    "lat": 12.9965109625,
+    "lng": 77.6684710375,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "BERATENA_AGRAHARA",
+    "name": "Beratena Agrahara",
+    "lat": 12.863897649999998,
+    "lng": 77.6578894,
+    "lines": [
+      "Yellow"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "BIOCON_HEBBAGODI",
+    "name": "Biocon Hebbagodi",
+    "lat": 12.829015349999999,
+    "lng": 77.68139,
+    "lines": [
+      "Yellow"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "BOMMANAHALLI",
+    "name": "Bommanahalli",
+    "lat": 12.91074975,
+    "lng": 77.62641495,
+    "lines": [
+      "Yellow"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "BTM_LAYOUT",
+    "name": "BTM Layout",
+    "lat": 12.9165855,
+    "lng": 77.60812745,
+    "lines": [
+      "Yellow"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "CENTRAL_SILK_BOARD",
+    "name": "Central Silk Board",
+    "lat": 12.916568250000001,
+    "lng": 77.62057135,
+    "lines": [
+      "Yellow"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "CHALLAGHATTA",
+    "name": "Challaghatta",
+    "lat": 12.89730965,
+    "lng": 77.46123255,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "CHICKPETE",
+    "name": "Chickpete",
+    "lat": 12.9669243375,
+    "lng": 77.5745578375,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "CHIKKABIDARAKALLU",
+    "name": "Chikkabidarakallu",
+    "lat": 13.05236295,
+    "lng": 77.48791625,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "CUBBON_PARK",
+    "name": "Cubbon Park",
+    "lat": 12.9809269,
+    "lng": 77.597567175,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "DASARAHALLI",
+    "name": "Dasarahalli",
+    "lat": 13.0432576,
+    "lng": 77.51254865,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "DEEPANJALI_NAGAR",
+    "name": "Deepanjali Nagar",
+    "lat": 12.9520416125,
+    "lng": 77.537023475,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "DELTA_ELECTRONICS_BOMMASANDRA",
+    "name": "Delta Electronics Bommasandra",
+    "lat": 12.8194215,
+    "lng": 77.68832635000001,
+    "lines": [
+      "Yellow"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "DODDAKALLASANDRA",
+    "name": "Doddakallasandra",
+    "lat": 12.884647637499999,
+    "lng": 77.552768875,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "DR_B_R_AMBEDKAR_STATION_VIDHANA_SOUDHA",
+    "name": "Dr. B. R. Ambedkar Station, Vidhana Soudha",
+    "lat": 12.9783564375,
+    "lng": 77.591379625,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "ELECTRONIC_CITY",
+    "name": "Electronic City",
+    "lat": 12.856538950000001,
+    "lng": 77.66348655,
+    "lines": [
+      "Yellow"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "GARUDACHARPALYA",
+    "name": "Garudacharpalya",
+    "lat": 12.9934502,
+    "lng": 77.70360256250001,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "GORAGUNTEPALYA",
+    "name": "Goraguntepalya",
+    "lat": 13.0283843125,
+    "lng": 77.54090913750001,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "HALASURU",
+    "name": "Halasuru",
+    "lat": 12.976500875,
+    "lng": 77.62669075,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "HONGASANDRA",
+    "name": "Hongasandra",
+    "lat": 12.901727900000001,
+    "lng": 77.63197,
+    "lines": [
+      "Yellow"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "HOODI",
+    "name": "Hoodi",
+    "lat": 12.9889122375,
+    "lng": 77.71150075,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "HOPEFARM_CHANNASANDRA",
+    "name": "Hopefarm Channasandra",
+    "lat": 12.987370550000001,
+    "lng": 77.7539147,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "HOSA_ROAD",
+    "name": "Hosa Road",
+    "lat": 12.8707423,
+    "lng": 77.65244659999999,
+    "lines": [
+      "Yellow"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "HUSKUR_ROAD",
+    "name": "Huskur Road",
+    "lat": 12.8390743,
+    "lng": 77.67743494999999,
+    "lines": [
+      "Yellow"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "INDIRANAGAR",
+    "name": "Indiranagar",
+    "lat": 12.9783246625,
+    "lng": 77.63865875,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "INFOSYS_FOUNDATION_KONAPPANA_AGRAHARA",
+    "name": "Infosys Foundation Konappana Agrahara",
+    "lat": 12.84644385,
+    "lng": 77.67118515,
+    "lines": [
+      "Yellow"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "JALAHALLI",
+    "name": "Jalahalli",
+    "lat": 13.039408850000001,
+    "lng": 77.51974245,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "JAYA_PRAKASH_NAGAR",
+    "name": "Jaya Prakash Nagar",
+    "lat": 12.90747925,
+    "lng": 77.5731337875,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "JAYADEVA_HOSPITAL",
+    "name": "Jayadeva Hospital",
+    "lat": 12.91674625,
+    "lng": 77.60008640000001,
+    "lines": [
+      "Yellow"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "JAYANAGAR",
+    "name": "Jayanagar",
+    "lat": 12.92950675,
+    "lng": 77.5801494375,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "JNANABHARATHI",
+    "name": "Jnanabharathi",
+    "lat": 12.9354263,
+    "lng": 77.5124105,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "KADUGODI_TREE_PARK",
+    "name": "Kadugodi Tree Park",
+    "lat": 12.9856371,
+    "lng": 77.74705424999999,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "KENGERI",
+    "name": "Kengeri",
+    "lat": 12.90791275,
+    "lng": 77.47658095,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "KENGERI_BUS_TERMINAL",
+    "name": "Kengeri Bus Terminal",
+    "lat": 12.9146879,
+    "lng": 77.48785485,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "KONANAKUNTE_CROSS",
+    "name": "Konanakunte Cross",
+    "lat": 12.888959700000001,
+    "lng": 77.562684525,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "KRANTIVIRA_SANGOLLI_RAYANNA_RAILWAY_STATION",
+    "name": "Krantivira Sangolli Rayanna Railway Station",
+    "lat": 12.9758747875,
+    "lng": 77.56537739999999,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "KRISHNA_RAJENDRA_MARKET",
+    "name": "Krishna Rajendra Market",
+    "lat": 12.960892125,
+    "lng": 77.574666525,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "KRISHNARAJAPURA",
+    "name": "Krishnarajapura",
+    "lat": 12.999904825,
+    "lng": 77.6778677125,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "KUDLU_GATE",
+    "name": "Kudlu Gate",
+    "lat": 12.8899396,
+    "lng": 77.63920920000001,
+    "lines": [
+      "Yellow"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "KUNDALAHALLI",
+    "name": "Kundalahalli",
+    "lat": 12.97759035,
+    "lng": 77.715444175,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "LALBAGH",
+    "name": "Lalbagh",
+    "lat": 12.946534275000001,
+    "lng": 77.5800218375,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "MADAVARA",
+    "name": "Madavara",
+    "lat": 13.05741815,
+    "lng": 77.47280475,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "MAGADI_ROAD",
+    "name": "Magadi Road",
+    "lat": 12.9756247625,
+    "lng": 77.5553558,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "MAHAKAVI_KUVEMPU_ROAD",
+    "name": "Mahakavi Kuvempu Road",
+    "lat": 12.9985035125,
+    "lng": 77.5568776,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "MAHALAKSHMI",
+    "name": "Mahalakshmi",
+    "lat": 13.00807365,
+    "lng": 77.5488090875,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "MAHATMA_GANDHI_ROAD",
+    "name": "Mahatma Gandhi Road",
+    "lat": 12.975553612499999,
+    "lng": 77.6066604875,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "MANJUNATHANAGARA",
+    "name": "Manjunathanagara",
+    "lat": 13.0500903,
+    "lng": 77.4944467,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "MANTRI_SQUARE_SAMPIGE_ROAD",
+    "name": "Mantri Square Sampige Road",
+    "lat": 12.9904577,
+    "lng": 77.570735775,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "MYSORE_ROAD",
+    "name": "Mysore Road",
+    "lat": 12.9466771625,
+    "lng": 77.5300824375,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "NADAPRABHU_KEMPEGOWDA_STATION_MAJESTIC_GREEN_LINE_",
+    "name": "Nadaprabhu Kempegowda Station, Majestic (Green Line)",
+    "lat": 12.9753987625,
+    "lng": 77.57297456250001,
+    "lines": [
+      "Green",
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": true
+  },
+  {
+    "id": "NAGASANDRA",
+    "name": "Nagasandra",
+    "lat": 13.04795825,
+    "lng": 77.50014075,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "NALLURAHALLI",
+    "name": "Nallurahalli",
+    "lat": 12.97659865,
+    "lng": 77.72472307500001,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "NATIONAL_COLLEGE",
+    "name": "National College",
+    "lat": 12.9505259875,
+    "lng": 77.5736961375,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "PANTHARAPALYA_NAYANDAHALLI",
+    "name": "Pantharapalya - Nayandahalli",
+    "lat": 12.94167195,
+    "lng": 77.52511575,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "PATTANAGERE",
+    "name": "Pattanagere",
+    "lat": 12.924251550000001,
+    "lng": 77.49835455,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "PATTANDUR_AGRAHARA",
+    "name": "Pattandur Agrahara",
+    "lat": 12.987609812499999,
+    "lng": 77.7376610125,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "PEENYA",
+    "name": "Peenya",
+    "lat": 13.0330252125,
+    "lng": 77.5332071,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "PEENYA_INDUSTRY",
+    "name": "Peenya Industry",
+    "lat": 13.0363161,
+    "lng": 77.5255125125,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "RAGIGUDDA",
+    "name": "Ragigudda",
+    "lat": 12.917082,
+    "lng": 77.58824075,
+    "lines": [
+      "Yellow"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "RAJAJINAGAR",
+    "name": "Rajajinagar",
+    "lat": 13.0005311375,
+    "lng": 77.54966847499999,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "RAJARAJESHWARI_NAGAR",
+    "name": "Rajarajeshwari Nagar",
+    "lat": 12.9366549,
+    "lng": 77.51966264999999,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "RASHTREEYA_VIDYALAYA_ROAD",
+    "name": "Rashtreeya Vidyalaya Road",
+    "lat": 12.921278184375002,
+    "lng": 77.580127678125,
+    "lines": [
+      "Green",
+      "Yellow"
+    ],
+    "operational": true,
+    "interchange": true
+  },
+  {
+    "id": "SANDAL_SOAP_FACTORY",
+    "name": "Sandal Soap Factory",
+    "lat": 13.0147177375,
+    "lng": 77.5540145625,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "SEETHARAMPALYA",
+    "name": "Seetharampalya",
+    "lat": 12.9810551875,
+    "lng": 77.70871876250001,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "SILK_INSTITUTE",
+    "name": "Silk Institute",
+    "lat": 12.8616758375,
+    "lng": 77.5299363625,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "SINGASANDRA",
+    "name": "Singasandra",
+    "lat": 12.88080545,
+    "lng": 77.64485965,
+    "lines": [
+      "Yellow"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "SINGAYYANAPALYA",
+    "name": "Singayyanapalya",
+    "lat": 12.996605537499999,
+    "lng": 77.6924834625,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "SIR_M_VISVESVARAYA_STN_CENTRAL_COLLEGE",
+    "name": "Sir M. Visvesvaraya Stn., Central College",
+    "lat": 12.974515799999999,
+    "lng": 77.58422375,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "SOUTH_END_CIRCLE",
+    "name": "South End Circle",
+    "lat": 12.938261887500001,
+    "lng": 77.5800613375,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "SRI_BALAGANGADHARANATHA_SWAMIJI_STN_HOSAHALLI",
+    "name": "Sri Balagangadharanatha Swamiji Stn., Hosahalli",
+    "lat": 12.9742837625,
+    "lng": 77.54562013750001,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "SRI_SATHYA_SAI_HOSPITAL",
+    "name": "Sri Sathya Sai Hospital",
+    "lat": 12.9811027125,
+    "lng": 77.7275587,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "SRIRAMPURA",
+    "name": "Srirampura",
+    "lat": 12.99652355,
+    "lng": 77.56330692499999,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "SWAMI_VIVEKANANDA_ROAD",
+    "name": "Swami Vivekananda Road",
+    "lat": 12.9859283625,
+    "lng": 77.64490082500001,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "THALAGHATTAPURA",
+    "name": "Thalaghattapura",
+    "lat": 12.8714038625,
+    "lng": 77.53839781250001,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "TRINITY",
+    "name": "Trinity",
+    "lat": 12.973011612499999,
+    "lng": 77.61701693750001,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "VAJARAHALLI",
+    "name": "Vajarahalli",
+    "lat": 12.8775284,
+    "lng": 77.54478387500001,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "VIJAYANAGAR",
+    "name": "Vijayanagar",
+    "lat": 12.9709537,
+    "lng": 77.5373851,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "WHITEFIELD_KADUGODI_",
+    "name": "Whitefield (Kadugodi)",
+    "lat": 12.99557695,
+    "lng": 77.75789855,
+    "lines": [
+      "Purple"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "YELACHENAHALLI",
+    "name": "Yelachenahalli",
+    "lat": 12.8960473875,
+    "lng": 77.570124325,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  },
+  {
+    "id": "YESHWANTPUR",
+    "name": "Yeshwantpur",
+    "lat": 13.0233421,
+    "lng": 77.54973195,
+    "lines": [
+      "Green"
+    ],
+    "operational": true,
+    "interchange": false
+  }
+]
