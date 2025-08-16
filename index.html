@@ -3,63 +3,58 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bangalore Metro Map — Live routes, stations & basics</title>
+  <title>Bengaluru Metro — Map, routes & stations</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <link rel="stylesheet" href="assets/styles.css"/>
+  <style>
+    /* Page-specific tweaks for minimal clean look */
+    .hero {
+      margin: 20px auto 14px;
+      display: grid;
+      gap: 6px;
+    }
+    .hero .headline {
+      font-size: 28px;
+      line-height: 1.2;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+    .hero .sub {
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 8px 0 0;
+    }
+  </style>
 </head>
 <body>
-  <!-- Topbar -->
+  <!-- Topbar (empty spacer, no brand/links) -->
   <header class="topbar">
-    <div class="container" style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
-      <div class="brand">BangaloreMetroMap.com <span class="badge">V1</span></div>
-      <nav style="display:flex;gap:14px;font-size:14px;color:var(--muted)">
-        <a href="#map">Map</a>
-        <a href="https://github.com/RanjithGowdaJN/bangalore-metro-map" rel="noopener" target="_blank">Data</a>
-      </nav>
-    </div>
+    <div class="container" style="padding:10px 16px"></div>
   </header>
 
-  <!-- Hero -->
   <main class="container">
+    <!-- Simple title + subtitle -->
     <section class="hero">
-      <div>
-        <div class="headline">Bengaluru Metro, at a glance.</div>
-        <div class="sub">Fast, no-nonsense view of Namma Metro’s <strong>operational</strong> network. Hover a station for its name; click for Time / Price / Info (coming soon).</div>
-        <div class="cta-row">
-          <a class="btn primary" href="#map">Open the Map</a>
-          <a class="btn" href="mailto:hello@bangaloremetromap.com?subject=Feedback" rel="noopener">Send feedback</a>
-        </div>
-      </div>
-      <div class="card">
-        <div style="font-weight:700;margin-bottom:6px">What’s here now</div>
-        <ul style="margin:0;padding-left:18px;color:var(--muted);font-size:14px;line-height:1.5">
-          <li>Operational Purple / Green / Yellow from open data</li>
-          <li>Station markers sit above lines (easier hover)</li>
-          <li>Mobile-friendly layout; versioned data in GitHub</li>
-        </ul>
-      </div>
+      <div class="headline">Bengaluru Metro, at a glance.</div>
+      <div class="sub">A clear, up-to-date map of the operational network — Purple, Green, and Yellow lines with all stations.</div>
     </section>
 
     <!-- Map -->
     <section id="map-section" class="map-wrap">
       <div id="map"></div>
+      <div class="hint">Tip: select your starting station on the map to see timings and price.</div>
     </section>
 
-    <!-- Future feature panels render here by the tiny router (optional) -->
+    <!-- Future panels still mount here -->
     <section id="feature-target"></section>
-
-    <!-- Footer CTA -->
-    <section class="footer">
-      <div class="blurb">Next: first/last train timings, price calculator, and simple route finder (no Google APIs). Want something specific? Tell me.</div>
-      <div style="justify-self:end; display:flex; gap:10px; flex-wrap:wrap">
-        <a class="btn" href="https://forms.gle/" target="_blank" rel="noopener">Suggest a feature</a>
-        <a class="btn" href="https://github.com/RanjithGowdaJN/bangalore-metro-map" target="_blank" rel="noopener">View data & history</a>
-      </div>
-    </section>
   </main>
 
   <!-- Minimal attribution -->
-  <div class="container" style="color:var(--muted);font-size:12px;margin-bottom:24px">
+  <div class="container" style="color:var(--muted);font-size:12px;margin:20px auto 28px">
     Map data © OpenStreetMap contributors.
   </div>
 
