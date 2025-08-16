@@ -15,6 +15,8 @@
       font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
     a{color:inherit;text-decoration:none}
     .container{max-width:1200px;margin:0 auto;padding:16px}
+
+    /* Top bar */
     .topbar{
       position:sticky;top:0;z-index:1000;
       backdrop-filter:saturate(180%) blur(10px);
@@ -23,9 +25,9 @@
     }
     .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
     .badge{border:1px solid rgba(255,255,255,.12);padding:2px 8px;border-radius:999px;font-size:12px;color:var(--muted)}
-    .hero{
-      margin-top:18px; display:grid; grid-template-columns:1.1fr .9fr; gap:24px; align-items:center;
-    }
+
+    /* Hero */
+    .hero{margin-top:18px; display:grid; grid-template-columns:1.1fr .9fr; gap:24px; align-items:center;}
     .headline{font-size:28px;line-height:1.15;font-weight:800;letter-spacing:.1px}
     .sub{color:var(--muted);margin-top:8px;font-size:15px}
     .cta-row{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
@@ -38,19 +40,24 @@
     .btn.primary{background:linear-gradient(180deg,#4f46e5,#4338ca); border-color:transparent}
     .card{background:var(--card); border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:14px;}
 
-    /* Map section (70% of viewport) */
+    /* Map */
     .map-wrap{margin-top:18px}
     #map{
       height:70vh; border-radius:16px; overflow:hidden;
       border:1px solid rgba(255,255,255,.08); box-shadow:0 10px 25px rgba(0,0,0,.25);
     }
 
-    /* Tooltip styling & bring above all */
-    .leaflet-tooltip-pane { z-index: 1200 !important; }
+    /* Footer CTA */
+    .footer{ margin:18px 0 28px; display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:center; }
+    .footer .blurb{color:var(--muted); font-size:14px}
+
+    /* Leaflet overrides */
+    .leaflet-tooltip-pane { z-index: 1200 !important; } /* ensure tooltips are above polylines & markers */
     .leaflet-tooltip.station-tooltip{
       background:#fff; color:#111; border-radius:8px; border:1px solid #ccc;
       padding:6px 10px; box-shadow:0 2px 6px rgba(0,0,0,.2); font-weight:600;
     }
+    .leaflet-popup-content{color:#111; font-size:14px}
 
     /* Popup action pills */
     .pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
@@ -58,10 +65,6 @@
       font-size:13px; font-weight:700; color:#fff; background:linear-gradient(180deg,#4f46e5,#4338ca);
       border-radius:999px; padding:6px 10px; border:none; cursor:default; user-select:none;
     }
-
-    /* Footer CTA */
-    .footer{ margin:18px 0 28px; display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:center; }
-    .footer .blurb{color:var(--muted); font-size:14px}
 
     /* Mobile */
     @media (max-width: 840px){
@@ -73,6 +76,7 @@
   </style>
 </head>
 <body>
+  <!-- Topbar -->
   <header class="topbar">
     <div class="container" style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
       <div class="brand">BangaloreMetroMap.com <span class="badge">V1</span></div>
@@ -83,12 +87,12 @@
     </div>
   </header>
 
+  <!-- Hero -->
   <main class="container">
-    <!-- HERO -->
     <section class="hero">
       <div>
         <div class="headline">Bengaluru Metro, at a glance.</div>
-        <div class="sub">Fast, no-nonsense view of Namma Metro’s **operational** network. Hover a station for its name; click for Time / Price / Info (coming soon).</div>
+        <div class="sub">Fast, no-nonsense view of Namma Metro’s <strong>operational</strong> network. Hover a station for its name; click for Time / Price / Info (coming soon).</div>
         <div class="cta-row">
           <a class="btn primary" href="#map">Open the Map</a>
           <a class="btn" href="mailto:hello@bangaloremetromap.com?subject=Feedback" rel="noopener">Send feedback</a>
@@ -97,19 +101,19 @@
       <div class="card">
         <div style="font-weight:700;margin-bottom:6px">What’s here now</div>
         <ul style="margin:0;padding-left:18px;color:var(--muted);font-size:14px;line-height:1.5">
-          <li>Operational Purple / Green / Yellow drawn from open data</li>
-          <li>Station markers above lines for easy hover</li>
+          <li>Operational Purple / Green / Yellow from open data</li>
+          <li>Station markers sit above lines (easier hover)</li>
           <li>Mobile-friendly layout; versioned data in GitHub</li>
         </ul>
       </div>
     </section>
 
-    <!-- MAP -->
+    <!-- Map -->
     <section id="map-section" class="map-wrap">
       <div id="map"></div>
     </section>
 
-    <!-- FOOTER CTA -->
+    <!-- Footer CTA -->
     <section class="footer">
       <div class="blurb">Next: first/last train timings, price calculator, and simple route finder (no Google APIs). Want something specific? Tell me.</div>
       <div style="justify-self:end; display:flex; gap:10px; flex-wrap:wrap">
@@ -119,28 +123,26 @@
     </section>
   </main>
 
-  <!-- Minimal attribution (keeps us compliant; built-in control disabled below) -->
+  <!-- Minimal attribution (we disable Leaflet's built-in control and show this instead) -->
   <div class="container" style="color:var(--muted);font-size:12px;margin-bottom:24px">
     Map data © OpenStreetMap contributors.
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // -------- configure your data paths EXACTLY as in repo --------
-    const DATA_VERSION = "2025-08-16-3"; // bump to bust cache
-    const STATIONS_URL = `data/stations.geojson?v=${DATA_VERSION}`; // arrays, not FeatureCollections
+    // ------- data paths (arrays, not GeoJSON FeatureCollections) -------
+    const DATA_VERSION = "2025-08-16-4"; // bump to bust cache
+    const STATIONS_URL = `data/stations.geojson?v=${DATA_VERSION}`;
     const LINES_URL    = `data/lines.geojson?v=${DATA_VERSION}`;
 
-    // -------- map setup --------
+    // ------- map setup -------
     const map = L.map('map', { zoomControl:true, attributionControl:false }).setView([12.9716, 77.5946], 11);
 
-    // Custom panes: keep lines below, stations above; tooltips pane is raised via CSS
+    // panes to guarantee z ordering (lines below, stations above)
     map.createPane('linesPane');    map.getPane('linesPane').style.zIndex = 400;
     map.createPane('stationsPane'); map.getPane('stationsPane').style.zIndex = 650;
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19
-    }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
     const lineLayers = L.layerGroup().addTo(map);
     const stationLayers = L.layerGroup().addTo(map);
@@ -148,31 +150,27 @@
     let STATIONS = [];
     let STATIONS_BY_ID = {};
     let LINES = [];
+    let lockedStationId = null; // when a station is clicked, we suppress hover tooltip on that one
 
-    async function fetchJSON(url) {
-      const res = await fetch(url, { cache: 'no-store' });
-      if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status}`);
-      return res.json();
-    }
+    async function fetchJSON(url){ const r = await fetch(url, {cache:'no-store'}); if(!r.ok) throw new Error(url+': '+r.status); return r.json(); }
 
-    function render() {
+    function render(){
       lineLayers.clearLayers();
       stationLayers.clearLayers();
 
-      // 1) Draw lines (operational only) on linesPane
+      // draw operational lines using ordered station IDs
       LINES.filter(l => l.operational === true).forEach(line => {
         const coords = [];
-        for (const id of (line.stations || [])) {
+        for(const id of (line.stations || [])){
           const s = STATIONS_BY_ID[id];
           if (s && s.operational === true) coords.push([s.lat, s.lng]);
         }
-        if (coords.length >= 2) {
-          L.polyline(coords, { color: line.color || '#555', weight: 5, opacity: 0.95, pane:'linesPane' })
-           .addTo(lineLayers);
+        if(coords.length >= 2){
+          L.polyline(coords, { color: line.color || '#555', weight:5, opacity:0.95, pane:'linesPane' }).addTo(lineLayers);
         }
       });
 
-      // 2) Draw stations above lines (stationsPane)
+      // stations above lines
       STATIONS.forEach(s => {
         if (s.operational !== true) return;
 
@@ -180,44 +178,57 @@
           radius: 6, color:'#0b0b0b', weight:1, fillColor:'#ffffff', fillOpacity:1, pane:'stationsPane'
         });
 
-        // Hover tooltip (clear, topmost) — guidance only
-        marker.bindTooltip(
-          `<div style="min-width:180px; font-weight:700;">${s.name}</div>
-           <div style="color:#4f46e5; font-weight:700; margin-top:4px;">Click to get more info</div>`,
-          { direction:'top', offset:[0,-10], opacity:0.98, sticky:true, className:"station-tooltip" }
-        );
+        // hover tooltip — suppressed if this station is "locked" by click
+        marker.on('mouseover', () => {
+          if (lockedStationId === s.id) return;
+          marker.bindTooltip(
+            `<div style="min-width:180px; font-weight:700;">${s.name}</div>
+             <div style="color:#4f46e5; font-weight:700; margin-top:4px;">Click to get more info</div>`,
+            {direction:'top', offset:[0,-10], opacity:0.98, sticky:true, className:'station-tooltip'}
+          ).openTooltip();
+        });
+        marker.on('mouseout', () => {
+          if (lockedStationId === s.id) return; // keep tooltip state untouched while locked
+          marker.unbindTooltip();
+        });
 
-        // Click popup (non-functional action pills for now)
-        marker.bindPopup(`
-          <div style="min-width:240px">
-            <div style="font-weight:700; margin-bottom:6px;">${s.name}</div>
-            <div>Lines: ${(s.lines || []).join(', ')}</div>
-            <div class="pill-row">
-              <span class="pill">Time</span>
-              <span class="pill">Price</span>
-              <span class="pill">Station Info</span>
+        // click → open popup with pills; also lock this station so hover doesn't fight it
+        marker.on('click', () => {
+          lockedStationId = s.id;
+          marker.unbindTooltip(); // ensure tooltip gone
+          marker.bindPopup(`
+            <div style="min-width:240px">
+              <div style="font-weight:700; margin-bottom:6px;">${s.name}</div>
+              <div class="pill-row">
+                <span class="pill">Time</span>
+                <span class="pill">Price</span>
+                <span class="pill">Station Info</span>
+              </div>
             </div>
-          </div>
-        `);
+          `).openPopup();
+        });
 
         marker.addTo(stationLayers);
       });
+
+      // clicking on the map background clears the lock so hovers resume
+      map.off('click').on('click', (e) => {
+        // ignore clicks that originated from a popup
+        if (e.originalEvent && e.originalEvent.target && e.originalEvent.target.closest('.leaflet-popup')) return;
+        lockedStationId = null;
+      });
     }
 
-    Promise.all([fetchJSON(STATIONS_URL), fetchJSON(LINES_URL)])
-      .then(([stations, lines]) => {
-        if (!Array.isArray(stations) || !Array.isArray(lines)) {
-          throw new Error("Data format mismatch: expected arrays in stations.geojson & lines.geojson.");
-        }
-        STATIONS = stations;
-        STATIONS_BY_ID = Object.fromEntries(stations.map(s => [s.id, s]));
-        LINES = lines;
-        render();
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Failed to load metro data. Check Console for details.');
-      });
+    Promise.all([fetchJSON(STATIONS_URL), fetchJSON(LINES_URL)]).then(([stations, lines])=>{
+      if(!Array.isArray(stations) || !Array.isArray(lines)) throw new Error('Expected arrays in stations.geojson & lines.geojson');
+      STATIONS = stations;
+      STATIONS_BY_ID = Object.fromEntries(stations.map(s => [s.id, s]));
+      LINES = lines;
+      render();
+    }).catch(err => {
+      console.error(err);
+      alert('Failed to load metro data. Check Console for details.');
+    });
   </script>
 </body>
 </html>
