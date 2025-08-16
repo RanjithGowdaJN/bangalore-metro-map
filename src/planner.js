@@ -84,7 +84,7 @@ export async function initPlanner(opts) {
   const [stations, lines, fares, runtime] = await Promise.all([
     loadJSON(`${dataRoot}/stations.json`),
     loadJSON(`${dataRoot}/lines.json`),
-    loadJSON(`${dataRoot}/fares.json`).catch(() => ({})),
+    loadJSON(`${dataRoot}/fare.json`).catch(() => ({})),
     loadJSON(`${dataRoot}/runtime.json`).catch(() => ({})),
   ]);
 
