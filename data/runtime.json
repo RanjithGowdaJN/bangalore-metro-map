@@ -1,0 +1,8 @@
+{
+  "edgeMinutes": {
+    "MAJ__KRI": 2, "KRI__CHM": 2, "CHM__MAJ": 2,
+    "MAJ__SBC": 2, "SBC__JYN": 3, "JYN__RVD": 2,
+    "KRI__MAJ": 2, "CHM__KRI": 2, "SBC__MAJ": 2, "JYN__SBC": 3, "RVD__JYN": 2
+  },
+  "headwayMin": 6
+}

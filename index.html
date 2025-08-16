@@ -28,6 +28,20 @@
       font-size: 13px;
       margin: 8px 0 0;
     }
+
+    /* Inline planner styles (can be moved to assets/styles.css later) */
+    .planner-section { padding: 24px 16px; background: #f9fafb; border-top: 1px solid #eee; margin-top: 18px; }
+    .planner-section h2 { margin: 0 0 12px; font-size: 20px; }
+    .planner-controls { display: grid; gap: 12px; grid-template-columns: 1fr; max-width: 760px; }
+    .planner-row { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+    .planner-select, .plan-btn { padding: 10px 12px; font-size: 16px; }
+    .plan-btn { border-radius: 10px; border: 1px solid #ddd; background: white; cursor: pointer; width: fit-content; }
+    .towards-container { display: flex; flex-wrap: wrap; gap: 8px; }
+    .towards-btn { padding: 8px 12px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 8px; }
+    .towards-btn.active { border-color: #111827; }
+    .planner-results { margin-top: 16px; background: white; border: 1px solid #eee; border-radius: 12px; padding: 16px; max-width: 760px; }
+    .planner-results .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; }
+    .planner-results .row:last-child { border-bottom: none; }
   </style>
 </head>
 <body>
@@ -49,15 +63,74 @@
       <div class="hint">Tip: select your starting station on the map to see timings and price.</div>
     </section>
 
+    <!-- Timings & Price (Inline Planner) -->
+    <section id="planner" class="planner-section">
+      <h2>Timings & Price</h2>
+
+      <div class="planner-controls">
+        <div class="planner-row">
+          <div>
+            <label for="fromSelect">From</label>
+            <select id="fromSelect" class="planner-select"></select>
+          </div>
+          <div>
+            <label for="toSelect">To (optional)</label>
+            <select id="toSelect" class="planner-select"></select>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-weight:600; margin-bottom:6px;">Direction (Towards)</div>
+          <div id="towardsContainer" class="towards-container">
+            <!-- Buttons render here -->
+          </div>
+        </div>
+
+        <button id="planBtn" class="plan-btn">Plan Journey</button>
+      </div>
+
+      <div id="plannerResults" class="planner-results">
+        <!-- Fare, time, transfers, first/last train render here -->
+      </div>
+    </section>
+
     <!-- Future panels still mount here -->
     <section id="feature-target"></section>
   </main>
 
-
+  <!-- Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module">
     import { bootstrap } from "./src/app.js";
-    bootstrap();
+    bootstrap(); // initializes the map
+  </script>
+
+  <!-- Planner init (kept separate from map code) -->
+  <script type="module">
+    import { initPlanner, plannerAPI } from "./src/planner.js";
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initPlanner({
+        fromSelect: '#fromSelect',
+        toSelect: '#toSelect',
+        towardsContainer: '#towardsContainer',
+        results: '#plannerResults',
+        dataRoot: './data',        // expects stations/lines (json or geojson as per planner.js), runtime.json, fare.json
+        scrollTarget: '#planner'
+      });
+
+      // Expose minimal API so the MAP can set stations on click
+      window.MetroPlanner = plannerAPI;
+    });
+
+    // Optional: if your map code dispatches a custom event on station click,
+    // you can wire it like this (safe no-op if never fired):
+    window.addEventListener('metro:stationClick', (e) => {
+      const id = e.detail?.id;
+      if (id && window.MetroPlanner?.setFrom) {
+        window.MetroPlanner.setFrom(id, { scroll: true });
+      }
+    });
   </script>
 </body>
 </html>
