@@ -14,7 +14,7 @@ export async function initPlanner(opts){
 
   // Load data
   const [stations,lines,fareCfg,rt]=await Promise.all([
-    j(`${root}/stations.json`), j(`${root}/lines.json`),
+    j(`${root}/stations.geojson`), j(`${root}/lines.geojson`),
     j(`${root}/fare.json`).catch(()=>({})), j(`${root}/runtime.json`).catch(()=>({}))
   ]);
 
