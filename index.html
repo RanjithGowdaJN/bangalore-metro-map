@@ -3,40 +3,139 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bangalore Metro Map — V1</title>
+  <title>Bangalore Metro Map — Live routes, stations & basics</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
-    html, body { height:100%; margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
-    #topbar { position: fixed; top:0; left:0; right:0; background:#111; color:#fff; padding:10px 12px; z-index:1000; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-    #map { position:absolute; top:56px; bottom:0; left:0; right:0; }
-    .pill { background:#1f2937; border-radius:999px; padding:6px 10px; display:flex; align-items:center; gap:8px; font-size:14px; }
-    .legend { background:#fff; padding:8px 10px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.1); }
-    .legend h4 { margin:0 0 6px 0; font-size:14px; }
-    .legend .item { display:flex; align-items:center; gap:8px; margin:4px 0; }
-    .legend .swatch { width:14px; height:14px; border-radius:3px; }
-    .leaflet-popup-content { font-size:14px; }
+    :root{
+      --bg:#0b0f14;
+      --surface:#0f1720;
+      --text:#e6eef7;
+      --muted:#9fb0c5;
+      --accent:#4f46e5; /* indigo */
+      --card:#111826;
+      --ring: rgba(79,70,229,.2);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    a{color:inherit;text-decoration:none}
+    .container{max-width:1200px;margin:0 auto;padding:16px}
+    .topbar{
+      position:sticky;top:0;z-index:1000;
+      backdrop-filter:saturate(180%) blur(10px);
+      background:linear-gradient(180deg, rgba(15,23,32,.9), rgba(15,23,32,.6));
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+    .badge{border:1px solid rgba(255,255,255,.12);padding:2px 8px;border-radius:999px;font-size:12px;color:var(--muted)}
+    .hero{
+      margin-top:18px;
+      display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center;
+    }
+    .headline{font-size:28px;line-height:1.15;font-weight:800;letter-spacing:.1px}
+    .sub{color:var(--muted);margin-top:8px;font-size:15px}
+    .cta-row{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+    .btn{
+      padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
+      background:linear-gradient(180deg,#1b2330,#121a26); color:#fff; font-weight:600;
+      box-shadow:0 0 0 0 var(--ring); transition:transform .08s ease, box-shadow .15s ease;
+    }
+    .btn:hover{transform:translateY(-1px); box-shadow:0 0 0 6px var(--ring)}
+    .btn.primary{background:linear-gradient(180deg,#4f46e5,#4338ca); border-color:transparent}
+    .card{
+      background:var(--card); border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:14px;
+    }
+
+    /* Map section (70% of viewport) */
+    .map-wrap{margin-top:18px}
+    #map{
+      height:70vh; border-radius:16px; overflow:hidden;
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:0 10px 25px rgba(0,0,0,.25);
+    }
+
+    /* Legend styling (Leaflet control) */
+    .legend{background:#0f1720cc; color:#e6eef7; padding:10px 12px;
+      border:1px solid rgba(255,255,255,.08); border-radius:10px; backdrop-filter:blur(6px)}
+    .legend h4{margin:0 0 6px 0; font-size:13px; color:var(--muted)}
+    .legend .item{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:13px}
+    .legend .swatch{width:14px;height:14px;border-radius:3px}
+
+    /* Footer CTA */
+    .footer{
+      margin:18px 0 28px; display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:center;
+    }
+    .footer .blurb{color:var(--muted); font-size:14px}
+    .leaflet-popup-content{color:#111; font-size:14px} /* popups use Leaflet default bg */
+
+    /* Mobile */
+    @media (max-width: 840px){
+      .hero{grid-template-columns:1fr}
+      .headline{font-size:22px}
+      #map{height:62vh}
+      .footer{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
-  <div id="topbar">
-    <div style="font-weight:600;">BangaloreMetroMap.com — V1</div>
-    <label class="pill">
-      <input type="checkbox" id="fullNetworkToggle" checked />
-      <span>Show full network (incl. upcoming)</span>
-    </label>
-  </div>
+  <header class="topbar">
+    <div class="container" style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+      <div class="brand">BangaloreMetroMap.com <span class="badge">V1</span></div>
+      <nav style="display:flex;gap:14px;font-size:14px;color:var(--muted)">
+        <a href="#map">Map</a>
+        <a href="https://github.com/RanjithGowdaJN/bangalore-metro-map" rel="noopener" target="_blank">Data</a>
+      </nav>
+    </div>
+  </header>
 
-  <div id="map"></div>
+  <main class="container">
+    <!-- HERO -->
+    <section class="hero">
+      <div>
+        <div class="headline">Bengaluru Metro, at a glance.</div>
+        <div class="sub">Fast, no-nonsense view of Namma Metro’s operational network. Zoom, hover stations for names, and explore live routes. Pink/Blue coming as the city brings them online.</div>
+        <div class="cta-row">
+          <a class="btn primary" href="#map">Open the Map</a>
+          <a class="btn" href="mailto:hello@bangaloremetromap.com?subject=Feedback" rel="noopener">Send feedback</a>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:6px">What you’ll find here</div>
+        <ul style="margin:0;padding-left:18px;color:var(--muted);font-size:14px;line-height:1.5">
+          <li>Clean map with operational Purple/Green/Yellow lines</li>
+          <li>Station dots with **hover labels**; click for details</li>
+          <li>Mobile-friendly layout; open data pipeline via GitHub</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- MAP -->
+    <section id="map-section" class="map-wrap">
+      <div id="map"></div>
+    </section>
+
+    <!-- FOOTER CTA -->
+    <section class="footer">
+      <div class="blurb">Built for commuters. Planning features next: first/last train timings, route finder without Google APIs, and live service notices. If you want something specific, tell me.</div>
+      <div style="justify-self:end; display:flex; gap:10px; flex-wrap:wrap">
+        <a class="btn" href="https://forms.gle/" target="_blank" rel="noopener">Suggest a feature</a>
+        <a class="btn" href="https://github.com/RanjithGowdaJN/bangalore-metro-map" target="_blank" rel="noopener">View data & history</a>
+      </div>
+    </section>
+  </main>
+
+  <div class="container" style="color:var(--muted);font-size:12px;margin-bottom:24px">
+    Tiles & map data © OpenStreetMap contributors.
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     // -------- configure your data paths EXACTLY as in repo --------
-    const DATA_VERSION = "2025-08-15-4"; // bump to bust cache
-    const STATIONS_URL = `data/stations.geojson?v=${DATA_VERSION}`; // <-- plural
+    const DATA_VERSION = "2025-08-16-1"; // bump to bust cache
+    const STATIONS_URL = `data/stations.geojson?v=${DATA_VERSION}`; // arrays, not FeatureCollections
     const LINES_URL    = `data/lines.geojson?v=${DATA_VERSION}`;
 
     // -------- map setup --------
-    const map = L.map('map').setView([12.9716, 77.5946], 11);
+    const map = L.map('map', { zoomControl:true }).setView([12.9716, 77.5946], 11);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '© OpenStreetMap contributors'
@@ -48,12 +147,6 @@
     let STATIONS = [];
     let STATIONS_BY_ID = {};
     let LINES = [];
-    let showFull = true;
-
-    document.getElementById('fullNetworkToggle').addEventListener('change', (e) => {
-      showFull = e.target.checked;
-      render();
-    });
 
     async function fetchJSON(url) {
       const res = await fetch(url, { cache: 'no-store' });
@@ -65,18 +158,20 @@
       lineLayers.clearLayers();
       stationLayers.clearLayers();
 
-      // stations
+      // stations (hover label via tooltip)
       STATIONS.forEach(s => {
-        const visible = showFull ? true : (s.operational === true);
-        if (!visible) return;
+        // Only show operational stations (you can drop this if you add upcoming later)
+        if (s.operational !== true) return;
 
         const marker = L.circleMarker([s.lat, s.lng], {
-          radius: 5,
-          color: s.operational ? '#000' : '#666',
-          weight: 1,
-          fillColor: s.operational ? '#fff' : '#bbb',
-          fillOpacity: 1
-        }).bindPopup(`
+          radius: 5, color:'#0b0b0b', weight:1, fillColor:'#ffffff', fillOpacity:1
+        });
+
+        // Hover label
+        marker.bindTooltip(s.name, { direction:'top', offset:[0,-6], opacity:0.95, sticky:true });
+
+        // Click popup (basic details)
+        marker.bindPopup(`
           <div style="min-width:220px">
             <div style="font-weight:600;margin-bottom:4px">${s.name}</div>
             <div>Lines: ${(s.lines || []).join(', ')}</div>
@@ -89,22 +184,22 @@
         marker.addTo(stationLayers);
       });
 
-      // lines from ordered station IDs
-      LINES.filter(l => showFull ? true : (l.operational === true)).forEach(line => {
+      // lines from ordered station IDs (operational only)
+      LINES.filter(l => l.operational === true).forEach(line => {
         const coords = [];
         for (const id of (line.stations || [])) {
           const s = STATIONS_BY_ID[id];
-          if (s) coords.push([s.lat, s.lng]);
+          if (s && s.operational === true) coords.push([s.lat, s.lng]);
         }
         if (coords.length >= 2) {
-          L.polyline(coords, { color: line.color || '#555', weight: 5, opacity: 0.9 }).addTo(lineLayers);
+          L.polyline(coords, { color: line.color || '#555', weight: 5, opacity: 0.95 })
+           .addTo(lineLayers);
         }
       });
     }
 
     Promise.all([fetchJSON(STATIONS_URL), fetchJSON(LINES_URL)])
       .then(([stations, lines]) => {
-        // Expect arrays (not GeoJSON FeatureCollections)
         if (!Array.isArray(stations) || !Array.isArray(lines)) {
           throw new Error("Data format mismatch: expected arrays in stations.geojson & lines.geojson.");
         }
@@ -117,22 +212,6 @@
         console.error(err);
         alert('Failed to load metro data. Check Console for details.');
       });
-
-    // legend
-    const legend = L.control({ position: 'bottomleft' });
-    legend.onAdd = function() {
-      const div = L.DomUtil.create('div', 'legend');
-      div.innerHTML = `
-        <h4>Lines</h4>
-        <div class="item"><span class="swatch" style="background:#7e3ff2"></span> Purple</div>
-        <div class="item"><span class="swatch" style="background:#1db954"></span> Green</div>
-        <div class="item"><span class="swatch" style="background:#edc21e"></span> Yellow</div>
-        <div class="item"><span class="swatch" style="background:#ff5ca2"></span> Pink (upcoming)</div>
-        <div class="item"><span class="swatch" style="background:#43a5ff"></span> Blue (upcoming)</div>
-      `;
-      return div;
-    };
-    legend.addTo(map);
   </script>
 </body>
 </html>
