@@ -1,0 +1,11 @@
+{
+  "currency": "INR",
+  "slabs": [
+    { "maxStops": 2,  "price": 10 },
+    { "maxStops": 5,  "price": 20 },
+    { "maxStops": 9,  "price": 30 },
+    { "maxStops": 14, "price": 40 },
+    { "maxStops": 99, "price": 50 }
+  ],
+  "smartCardDiscountPct": 10
+}
