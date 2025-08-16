@@ -45,22 +45,19 @@
       border:1px solid rgba(255,255,255,.08); box-shadow:0 10px 25px rgba(0,0,0,.25);
     }
 
-    /* Legend styling (Leaflet control) */
-    .legend{background:#0f1720cc; color:#e6eef7; padding:10px 12px;
-      border:1px solid rgba(255,255,255,.08); border-radius:10px; backdrop-filter:blur(6px)}
-    .legend h4{margin:0 0 6px 0; font-size:13px; color:var(--muted)}
-    .legend .item{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:13px}
-    .legend .swatch{width:14px;height:14px;border-radius:3px}
-
-    /* Tooltip styling */
+    /* Tooltip styling & bring above all */
+    .leaflet-tooltip-pane { z-index: 1200 !important; }
     .leaflet-tooltip.station-tooltip{
       background:#fff; color:#111; border-radius:8px; border:1px solid #ccc;
-      padding:6px 8px; box-shadow:0 2px 6px rgba(0,0,0,.2);
+      padding:6px 10px; box-shadow:0 2px 6px rgba(0,0,0,.2); font-weight:600;
     }
-    .leaflet-tooltip.station-tooltip .actions span{
-      cursor:default; color:#4f46e5; font-weight:600;
+
+    /* Popup action pills */
+    .pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .pill{
+      font-size:13px; font-weight:700; color:#fff; background:linear-gradient(180deg,#4f46e5,#4338ca);
+      border-radius:999px; padding:6px 10px; border:none; cursor:default; user-select:none;
     }
-    .leaflet-tooltip.station-tooltip .actions span:hover{ text-decoration:underline; }
 
     /* Footer CTA */
     .footer{ margin:18px 0 28px; display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:center; }
@@ -91,18 +88,18 @@
     <section class="hero">
       <div>
         <div class="headline">Bengaluru Metro, at a glance.</div>
-        <div class="sub">Fast, no-nonsense view of Namma Metro’s operational network. Zoom, hover stations for names, and explore live routes. Pink/Blue coming as the city brings them online.</div>
+        <div class="sub">Fast, no-nonsense view of Namma Metro’s **operational** network. Hover a station for its name; click for Time / Price / Info (coming soon).</div>
         <div class="cta-row">
           <a class="btn primary" href="#map">Open the Map</a>
           <a class="btn" href="mailto:hello@bangaloremetromap.com?subject=Feedback" rel="noopener">Send feedback</a>
         </div>
       </div>
       <div class="card">
-        <div style="font-weight:700;margin-bottom:6px">What you’ll find here</div>
+        <div style="font-weight:700;margin-bottom:6px">What’s here now</div>
         <ul style="margin:0;padding-left:18px;color:var(--muted);font-size:14px;line-height:1.5">
-          <li>Clean map with operational Purple / Green / Yellow lines</li>
-          <li>Station dots with hover labels + action menu</li>
-          <li>Mobile-friendly layout; open data pipeline via GitHub</li>
+          <li>Operational Purple / Green / Yellow drawn from open data</li>
+          <li>Station markers above lines for easy hover</li>
+          <li>Mobile-friendly layout; versioned data in GitHub</li>
         </ul>
       </div>
     </section>
@@ -114,7 +111,7 @@
 
     <!-- FOOTER CTA -->
     <section class="footer">
-      <div class="blurb">Built for commuters. Next up: first/last train timings, price calculator, and simple route finder (no Google APIs). Want something specific? Tell me.</div>
+      <div class="blurb">Next: first/last train timings, price calculator, and simple route finder (no Google APIs). Want something specific? Tell me.</div>
       <div style="justify-self:end; display:flex; gap:10px; flex-wrap:wrap">
         <a class="btn" href="https://forms.gle/" target="_blank" rel="noopener">Suggest a feature</a>
         <a class="btn" href="https://github.com/RanjithGowdaJN/bangalore-metro-map" target="_blank" rel="noopener">View data & history</a>
@@ -122,27 +119,27 @@
     </section>
   </main>
 
+  <!-- Minimal attribution (keeps us compliant; built-in control disabled below) -->
   <div class="container" style="color:var(--muted);font-size:12px;margin-bottom:24px">
-    Tiles & map data © OpenStreetMap contributors.
+    Map data © OpenStreetMap contributors.
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     // -------- configure your data paths EXACTLY as in repo --------
-    const DATA_VERSION = "2025-08-16-2"; // bump to bust cache
+    const DATA_VERSION = "2025-08-16-3"; // bump to bust cache
     const STATIONS_URL = `data/stations.geojson?v=${DATA_VERSION}`; // arrays, not FeatureCollections
     const LINES_URL    = `data/lines.geojson?v=${DATA_VERSION}`;
 
     // -------- map setup --------
-    const map = L.map('map', { zoomControl:true }).setView([12.9716, 77.5946], 11);
+    const map = L.map('map', { zoomControl:true, attributionControl:false }).setView([12.9716, 77.5946], 11);
 
-    // Custom panes to ensure stations sit above lines (better hoverability)
+    // Custom panes: keep lines below, stations above; tooltips pane is raised via CSS
     map.createPane('linesPane');    map.getPane('linesPane').style.zIndex = 400;
-    map.createPane('stationsPane'); map.getPane('stationsPane').style.zIndex = 650; // above lines
+    map.createPane('stationsPane'); map.getPane('stationsPane').style.zIndex = 650;
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors'
+      maxZoom: 19
     }).addTo(map);
 
     const lineLayers = L.layerGroup().addTo(map);
@@ -183,26 +180,22 @@
           radius: 6, color:'#0b0b0b', weight:1, fillColor:'#ffffff', fillOpacity:1, pane:'stationsPane'
         });
 
-        // Hover tooltip as an action menu (non-clickable UI for now)
+        // Hover tooltip (clear, topmost) — guidance only
         marker.bindTooltip(
-          `
-          <div style="min-width:200px; padding:4px 0;">
-            <div style="font-weight:700; margin-bottom:6px;">${s.name}</div>
-            <div class="actions" style="display:flex; gap:14px; font-size:13px;">
-              <span>Time</span><span>Price</span><span>Info</span>
-            </div>
-          </div>
-          `,
-          { direction:'top', offset:[0,-10], opacity:0.95, sticky:true, className:"station-tooltip" }
+          `<div style="min-width:180px; font-weight:700;">${s.name}</div>
+           <div style="color:#4f46e5; font-weight:700; margin-top:4px;">Click to get more info</div>`,
+          { direction:'top', offset:[0,-10], opacity:0.98, sticky:true, className:"station-tooltip" }
         );
 
-        // Click popup (basic details)
+        // Click popup (non-functional action pills for now)
         marker.bindPopup(`
-          <div style="min-width:220px">
-            <div style="font-weight:600;margin-bottom:4px">${s.name}</div>
+          <div style="min-width:240px">
+            <div style="font-weight:700; margin-bottom:6px;">${s.name}</div>
             <div>Lines: ${(s.lines || []).join(', ')}</div>
-            <div style="margin-top:6px; font-size:12px; color:#555">
-              Operational: ${s.operational ? 'Yes' : 'No (upcoming)'}
+            <div class="pill-row">
+              <span class="pill">Time</span>
+              <span class="pill">Price</span>
+              <span class="pill">Station Info</span>
             </div>
           </div>
         `);
@@ -225,22 +218,6 @@
         console.error(err);
         alert('Failed to load metro data. Check Console for details.');
       });
-
-    // Legend
-    const legend = L.control({ position: 'bottomleft' });
-    legend.onAdd = function() {
-      const div = L.DomUtil.create('div', 'legend');
-      div.innerHTML = `
-        <h4>Lines</h4>
-        <div class="item"><span class="swatch" style="background:#7e3ff2"></span> Purple</div>
-        <div class="item"><span class="swatch" style="background:#1db954"></span> Green</div>
-        <div class="item"><span class="swatch" style="background:#edc21e"></span> Yellow</div>
-        <div class="item"><span class="swatch" style="background:#ff5ca2"></span> Pink (upcoming)</div>
-        <div class="item"><span class="swatch" style="background:#43a5ff"></span> Blue (upcoming)</div>
-      `;
-      return div;
-    };
-    legend.addTo(map);
   </script>
 </body>
 </html>
