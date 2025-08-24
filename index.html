@@ -3,380 +3,83 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Namma Bengaluru Metro — Routes & Timings</title>
+<title>BangaloreMetroMap — Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
-  :root{
-    --bg:#0b0f15; --panel:#0f141b; --ink:#e5e7eb; --muted:#9aa3af; --border:#1f2530;
-    --accent:#7c3aed; --accent-weak:rgba(124,58,237,.16);
-    --band-limited:rgba(220,38,38,.18);
-    --band-regular:rgba(99,102,241,.20);
-    --band-peak:rgba(16,185,129,.24);
-    --band-high:rgba(245,158,11,.22);
-    --radius:22px;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Noto Sans",sans-serif}
-  .wrap{max-width:1200px;margin:0 auto;padding:24px 12px 72px}
-
-  #fold2{border:1px solid var(--border); border-radius:var(--radius);
-    background: radial-gradient(1200px 300px at 50% -10%, var(--accent-weak), transparent 60%), var(--panel);
-    box-shadow:0 10px 30px rgba(0,0,0,.35); display:flex; flex-direction:column; gap:14px; padding:14px}
-
-  .hdr{display:flex; align-items:center; justify-content:center; text-align:center}
-  .title{font-size:22px; font-weight:900}
-  @media (min-width:641px){ .title{font-size:24px} }
-
-  .lines{display:flex; gap:10px; flex-wrap:wrap; padding:6px 8px; justify-content:center}
-  .pill{border:1px solid var(--border); background:#0b0e12; color:#cbd5e1; padding:8px 12px; border-radius:999px; cursor:pointer; user-select:none; font-weight:700}
-  .pill.active{background:var(--accent); color:#08121e; border-color:transparent}
-
-  .secbar{display:flex; justify-content:center; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--border); border-radius:14px; background:#0b0f15}
-  .secbar .meta{font-weight:800; text-align:center; font-size:14px}
-
-  .card{border:1px solid var(--border); border-radius:16px; background:#0b0f15; padding:12px}
-
-  /* ===== Stations ===== */
-  .stations-stack{position:relative; width:100%; height:280px}
-  @media (max-width:640px){ .stations-stack{height:560px} }
-  .svgwrap{position:absolute; inset:0}
-  .labels-layer{position:absolute; inset:0; pointer-events:none; z-index:2}
-
-  /* desktop slanted label (inside SVG) */
-  .slabel{ font-size:12px; fill:#e5e7eb; paint-order:stroke; stroke:#0b0f15; stroke-width:5px }
-
-  /* HTML labels (mobile & also used at desktop if needed) */
-  .station-label{
-    position:absolute; transform:translate(-50%,0); pointer-events:none;
-    background:#111826; color:#fff; font-weight:800; font-size:15px; line-height:1.2;
-    padding:4px 8px; border:1px solid #334155; border-radius:10px;
-    box-shadow:0 1px 2px rgba(0,0,0,.55);
-    max-width:52vw; text-align:center; white-space:normal;
-  }
-
-  /* ===== Timings (unchanged) ===== */
-  .tl-head{display:flex; justify-content:space-between; align-items:center; margin:6px 2px 8px}
-  .tl-title{font-weight:900}
-  .day-chips{display:flex; gap:8px; flex-wrap:wrap}
-  .chip{padding:6px 10px; border:1px solid var(--border); border-radius:10px; background:#0b0e12; color:#cbd5e1; cursor:pointer}
-  .chip.active{background:var(--accent); color:#08121e; border-color:transparent; font-weight:800}
-  .meta-row{display:flex; gap:8px; align-items:center; color:#cbd5e1; margin:6px 2px 10px; flex-wrap:wrap}
-  .smallchip{padding:6px 10px; border-radius:10px; border:1px solid var(--border); background:#0b0e12}
-  .tag{font-size:12px; padding:4px 8px; border-radius:8px; background:#0b0e12; border:1px solid var(--border); color:#cbd5e1}
-
-  .bar{position:relative; border-radius:14px; overflow:hidden; border:1px solid var(--border); background:#0b0e12}
-  .bar.h{height:92px}
-  .vwrap{display:grid; grid-template-columns:64px 1fr; gap:8px}
-  .gut{font-size:12px; color:#cbd5e1}
-  .gut div{height:36px; display:flex; align-items:center; justify-content:flex-end; padding-right:6px; opacity:.9}
-  .bar.v{height:468px}
-
-  .seg{position:absolute; display:flex; align-items:center; justify-content:center; text-align:center; font-weight:900; padding:0 6px; pointer-events:none; z-index:2}
-  .seg small{display:block; font-weight:700; opacity:.9; margin-top:2px}
-  .limited{background:rgba(220,38,38,.18); color:#fecaca}
-  .regular{background:rgba(99,102,241,.20); color:#c7d2fe}
-  .peak{background:rgba(16,185,129,.24); color:#86efac}
-  .high{background:rgba(245,158,11,.22); color:#fde68a}
-
-  .gridline{position:absolute; background:rgba(255,255,255,.08); z-index:1}
-  .now-line{position:absolute; background:var(--accent); box-shadow:0 0 8px var(--accent); z-index:3}
-  .now-tag{position:absolute; background:var(--accent); color:#08121e; font-weight:900; font-size:11px; padding:1px 6px; border-radius:6px; z-index:3}
-
-  .ticks{display:grid; grid-template-columns:repeat(var(--tickcols,19),1fr); gap:0; color:#cbd5e1; font-size:12px; margin-top:6px}
-  .ticks div{justify-self:center}
-
-  .more{margin-top:12px; text-align:center}
-  .cta{display:inline-block; cursor:pointer; color:#08121e; background:linear-gradient(135deg, var(--accent), #9f67ff); padding:10px 16px; border-radius:12px; font-weight:900; border:1px solid rgba(255,255,255,.1)}
-  .cta[aria-expanded="true"]{background:linear-gradient(135deg, #1f2937, #0b0e12); color:#cbd5e1; border-color:var(--border)}
-  .more-wrap{display:none; margin-top:12px}
-  .more-wrap.open{display:block}
-
-  .train{width:16px;height:16px;vertical-align:-3px;margin-right:6px}
+  :root{--purple:#7c3aed;--green:#10b981;--yellow:#f59e0b;--ink:#0f172a;--muted:#64748b;--card:#0e1726;--hair:#1e293b}
+  html,body{height:100%} body{margin:0;background:#0b1120;color:#e5e7eb;font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  .wrap{max-width:1100px;margin:22px auto;padding:0 12px}
+  h1{font-size:clamp(20px,5vw,34px);margin:0 0 6px;text-align:center}
+  p.sub{color:#94a3b8;text-align:center;margin:0 0 14px}
+  .map-wrap{background:#0e1726;border:1px solid var(--hair);border-radius:14px;overflow:hidden}
+  #map{height:clamp(420px,64vh,720px)}
+  .legend{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;margin:10px 0 0}
+  .key{display:inline-flex;align-items:center;gap:6px;color:#cbd5e1;font-size:13px}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .dot.purple{background:var(--purple)} .dot.green{background:var(--green)} .dot.yellow{background:var(--yellow)}
+  .leaflet-tooltip{font-weight:600}
 </style>
 </head>
 <body>
   <div class="wrap">
-    <section id="fold2" aria-labelledby="title">
-      <div class="hdr"><h1 class="title" id="title">Namma Bengaluru Metro — Routes & Timings</h1></div>
-
-      <div class="lines" id="lineRow">
-        <button class="pill active" data-line="PURPLE">Purple Line</button>
-        <button class="pill" data-line="GREEN">Green Line</button>
-        <button class="pill" data-line="YELLOW">Yellow Line</button>
-      </div>
-
-      <div class="secbar"><div class="meta" id="lineMeta">Purple Line</div></div>
-
-      <!-- Stations -->
-      <div class="card">
-        <div class="stations-stack">
-          <svg class="svgwrap" viewBox="0 0 1200 560" preserveAspectRatio="xMidYMid meet" id="stationsSvg" role="img"></svg>
-          <div id="stationLabels" class="labels-layer" aria-hidden="true"></div>
-        </div>
-      </div>
-
-      <!-- Timings (kept) -->
-      <div class="card">
-        <div class="tl-head">
-          <div class="tl-title">Train Timings & Frequencies</div>
-          <div class="day-chips" id="dayChips" role="tablist" aria-label="Service day">
-            <button class="chip" data-day="weekday" role="tab">Weekdays</button>
-            <button class="chip" data-day="holiday" role="tab">Holidays & 2nd/4th Sat</button>
-            <button class="chip" data-day="sunday" role="tab">Sundays</button>
-          </div>
-        </div>
-
-        <div class="chart" id="chart-w2c">
-          <div class="tl-title">🚆 Whitefield → Challaghatta <span class="tag">Main</span></div>
-          <div class="meta-row"><span class="smallchip">First Train: <strong id="first-w2c">—</strong></span><span class="smallchip">Last Train: <strong id="last-w2c">—</strong></span></div>
-          <div class="vwrap" data-for="w2c">
-            <div class="gut" id="gut-w2c"></div>
-            <div class="bar h" id="bar-w2c"></div>
-          </div>
-          <div class="ticks" id="ticks-w2c"></div>
-        </div>
-
-        <div class="chart" id="chart-c2w">
-          <div class="tl-title">🚆 Challaghatta → Whitefield <span class="tag">Main</span></div>
-          <div class="meta-row"><span class="smallchip">First Train: <strong id="first-c2w">—</strong></span><span class="smallchip">Last Train: <strong id="last-c2w">—</strong></span></div>
-          <div class="vwrap" data-for="c2w">
-            <div class="gut" id="gut-c2w"></div>
-            <div class="bar h" id="bar-c2w"></div>
-          </div>
-          <div class="ticks" id="ticks-c2w"></div>
-        </div>
-
-        <div class="more">
-          <button id="toggleMore" class="cta" aria-expanded="false">See trains starting from in-between stations</button>
-          <div class="more-wrap" id="moreWrap" aria-hidden="true">
-            <div class="chart">
-              <div class="tl-title">🚆 Mysuru Road → Whitefield <span class="tag">Partial</span></div>
-              <div class="meta-row"><span class="smallchip">First Train: <strong id="first-m2w">—</strong></span><span class="smallchip">Last Train: <strong id="last-m2w">—</strong></span></div>
-              <div class="vwrap" data-for="m2w">
-                <div class="gut" id="gut-m2w"></div>
-                <div class="bar h" id="bar-m2w"></div>
-              </div>
-              <div class="ticks" id="ticks-m2w"></div>
-            </div>
-            <div class="chart">
-              <div class="tl-title">🚆 Garudachar Palya → Challaghatta <span class="tag">Partial</span></div>
-              <div class="meta-row"><span class="smallchip">First Train: <strong id="first-g2c">—</strong></span><span class="smallchip">Last Train: <strong id="last-g2c">—</strong></span></div>
-              <div class="vwrap" data-for="g2c">
-                <div class="gut" id="gut-g2c"></div>
-                <div class="bar h" id="bar-g2c"></div>
-              </div>
-              <div class="ticks" id="ticks-g2c"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <h1>Bengaluru’s “Namma Metro” — Map</h1>
+    <p class="sub">Stations colored by line. Interchanges are dual-ring markers.</p>
+    <div class="map-wrap"><div id="map" role="region" aria-label="Bengaluru Metro map"></div></div>
+    <div class="legend">
+      <span class="key"><span class="dot purple"></span>PURPLE</span>
+      <span class="key"><span class="dot green"></span>GREEN</span>
+      <span class="key"><span class="dot yellow"></span>YELLOW</span>
+    </div>
   </div>
 
-<script type="module">
-import { csvParse } from 'https://cdn.jsdelivr.net/npm/d3-dsv@3/+esm';
-const LINE_COLORS = { PURPLE:'#7c3aed', GREEN:'#10b981', YELLOW:'#f59e0b' };
-const $=s=>document.querySelector(s);
-const mm = window.matchMedia('(max-width:640px)');
-const isMobile = () => mm.matches;
-const toMin=t=>{const [h,m]=t.split(':').map(Number);return h*60+m}
-const hour12=h=>{const ampm=h>=12?'PM':'AM'; let hr=h%12; if(hr===0) hr=12; return `${hr}:00 ${ampm}`}
-const hexToRgba=(hex,a)=>{const c=hex.replace('#','');const r=parseInt(c.slice(0,2),16),g=parseInt(c.slice(2,4),16),b=parseInt(c.slice(4,6),16);return `rgba(${r},${g},${b},${a})`}
-function setTheme(color){
-  document.documentElement.style.setProperty('--accent',color);
-  document.documentElement.style.setProperty('--accent-weak',hexToRgba(color,.16));
-}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const LINE_COLORS = { PURPLE:"#7c3aed", GREEN:"#10b981", YELLOW:"#f59e0b" };
+const seqKey = L => `seq_${L.toLowerCase()}`;
+const BLR = [12.9716, 77.5946];
 
-/* ----- data ----- */
-async function loadData(){
-  try{
-    const [stationsCSV, envCSV, winCSV] = await Promise.all([
-      fetch('/data/stations.csv').then(r=>r.ok?r.text():Promise.reject()),
-      fetch('/data/routes_purple.csv').then(r=>r.ok?r.text():Promise.reject()),
-      fetch('/data/routes_purple_windows.csv').then(r=>r.ok?r.text():Promise.reject())
-    ]);
-    const stations = csvParse(stationsCSV), env=csvParse(envCSV), win=csvParse(winCSV);
-    return { stations, envelopes: env, windows: win };
-  }catch{
-    const stations = [
-      {id:'MYSORE_ROAD',name:'Mysuru Road',lines:'PURPLE',interchange:'FALSE',seq_purple:'1'},
-      {id:'KSR_CITY',name:'KSR City (Majestic)',lines:'PURPLE,GREEN',interchange:'TRUE',seq_purple:'6'},
-      {id:'INDIRANAGAR',name:'Indiranagar',lines:'PURPLE',interchange:'FALSE',seq_purple:'11'},
-      {id:'WHITEFIELD_KADUGODI',name:'Whitefield (Kadugodi)',lines:'PURPLE',interchange:'FALSE',seq_purple:'17'}
-    ];
-    const envelopes = [
-      {day_type:'weekday',starting_from:'WHITEFIELD_KADUGODI',to:'CHALLAGHATTA',start_time:'05:00',end_time:'23:05'},
-      {day_type:'weekday',starting_from:'CHALLAGHATTA',to:'WHITEFIELD_KADUGODI',start_time:'05:00',end_time:'23:05'}
-    ];
-    const windows = [
-      {day_type:'weekday',starting_from:'WHITEFIELD_KADUGODI',to:'CHALLAGHATTA',start_time:'06:00',end_time:'09:00',frequency_minutes:'3'},
-      {day_type:'weekday',starting_from:'WHITEFIELD_KADUGODI',to:'CHALLAGHATTA',start_time:'09:00',end_time:'16:00',frequency_minutes:'5'},
-      {day_type:'weekday',starting_from:'WHITEFIELD_KADUGODI',to:'CHALLAGHATTA',start_time:'16:00',end_time:'20:00',frequency_minutes:'3'},
-      {day_type:'weekday',starting_from:'WHITEFIELD_KADUGODI',to:'CHALLAGHATTA',start_time:'20:00',end_time:'23:05',frequency_minutes:'8'},
-      {day_type:'weekday',starting_from:'CHALLAGHATTA',to:'WHITEFIELD_KADUGODI',start_time:'06:00',end_time:'09:00',frequency_minutes:'3'},
-      {day_type:'weekday',starting_from:'CHALLAGHATTA',to:'WHITEFIELD_KADUGODI',start_time:'09:00',end_time:'16:00',frequency_minutes:'5'},
-      {day_type:'weekday',starting_from:'CHALLAGHATTA',to:'WHITEFIELD_KADUGODI',start_time:'16:00',end_time:'20:00',frequency_minutes:'3'},
-      {day_type:'weekday',starting_from:'CHALLAGHATTA',to:'WHITEFIELD_KADUGODI',start_time:'20:00',end_time:'23:05',frequency_minutes:'8'}
-    ];
-    return { stations, envelopes, windows };
-  }
-}
-function bandClassFromFreq(n){ const f=+n; if(f<=3) return 'peak'; if(f<=5) return 'regular'; if(f<=8) return 'high'; return 'limited'; }
-function assembleLine({stations,envelopes,windows}){
-  const ss = stations.filter(s=>(s.lines||'').toUpperCase().includes('PURPLE'))
-    .sort((a,b)=>(+a.seq_purple||9999)-(+b.seq_purple||9999))
-    .map(s=>({ id:s.id, name:s.name, interchanges:(s.interchange==='TRUE')?[{line:'GREEN'}]:[] }));
-  const by={};
-  envelopes.forEach(e=>{const d=e.day_type,k=`${e.starting_from}|${e.to}`; (by[d]??={})[k]??={first:e.start_time,last:e.end_time,windows:[]};});
-  windows.forEach(w=>{const d=w.day_type,k=`${w.starting_from}|${w.to}`; (by[d]??={})[k]??={first:w.start_time,last:w.end_time,windows:[]}; by[d][k].windows.push([w.start_time,w.end_time,`${w.frequency_minutes} min`,bandClassFromFreq(w.frequency_minutes)]);});
-  const mk=(a,b)=>`${a}|${b}`, dirs=d=>({
-    WHITEFIELD_TO_CHALLAGHATTA: by[d]?.[mk('WHITEFIELD_KADUGODI','CHALLAGHATTA')],
-    CHALLAGHATTA_TO_WHITEFIELD: by[d]?.[mk('CHALLAGHATTA','WHITEFIELD_KADUGODI')],
-    MYSURU_TO_WHITEFIELD:       by[d]?.[mk('MYSORE_ROAD','WHITEFIELD_KADUGODI')],
-    GARUDACHAR_TO_CHALLAGHATTA: by[d]?.[mk('GARUDACHARPALYA','CHALLAGHATTA')]
-  });
-  return { id:'PURPLE', name:'Purple Line', color:'#7c3aed', stations:ss,
-    days:{ weekday:{routes:dirs('weekday')}, holiday:{routes:dirs('holiday')}, sunday:{routes:dirs('sunday')} } };
-}
+const map = L.map('map', { zoomControl:true });
+map.setView(BLR, 11.8);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  { maxZoom:19, detectRetina:true, attribution:'&copy; OpenStreetMap' }).addTo(map);
 
-/* ----- stations: SVG rails/dots + HTML overlay labels on mobile ----- */
-function drawStations(line){
-  const svg=$('#stationsSvg'), labels=$('#stationLabels'); svg.innerHTML=''; labels.innerHTML='';
-  const mobile = isMobile();
-  const w=1200, h=mobile?560:280; svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+const lines = { PURPLE:L.layerGroup().addTo(map),
+                GREEN:L.layerGroup().addTo(map),
+                YELLOW:L.layerGroup().addTo(map) };
+const stationsLayer = L.layerGroup().addTo(map);
 
-  const stations=line.stations;
-  const interIdx = stations.findIndex(s=>s.interchanges?.length) || Math.floor(stations.length/2);
+fetch('/data/stations.geojson', { cache:'no-store' })
+  .then(r=>r.json()).then(gj => render(gj))
+  .catch(e => { console.warn(e); L.marker(BLR).addTo(map).bindPopup('Add /data/stations.geojson'); });
 
-  if(mobile){
-    const mid=w/2, xLeft=mid-250, xRight=mid+250, yTop=40, yJoin=510, elbow=28;
-    rail(xLeft,yTop,xLeft,yJoin-elbow); rail(xRight,yTop,xRight,yJoin-elbow);
-    rail(xLeft,yJoin-elbow,mid,yJoin);  rail(xRight,yJoin-elbow,mid,yJoin);
-    dot(mid,yJoin,11,ic(),true);
-    placeHTML(mid,yJoin+6,'Line change','middle');
+function render(gj){
+  const byLine = { PURPLE:[], GREEN:[], YELLOW:[] };
+  const bounds = [];
 
-    const north=stations.slice(interIdx).reverse(), south=stations.slice(0,interIdx+1);
-    let lastBottomLeft=-1e9, lastBottomRight=-1e9;
+  gj.features.forEach(f=>{
+    const p = f.properties||{};
+    const [lng,lat] = f.geometry.coordinates;
+    const Ls = Array.isArray(p.lines) ? p.lines : String(p.lines||'').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean);
+    const primary = Ls[0]; const colorA = LINE_COLORS[primary] || '#fff';
+    const m1 = L.circleMarker([lat,lng], { radius:6.5, color:colorA, weight:2.5, fillColor:'#fff', fillOpacity:1 })
+      .addTo(stationsLayer).bindTooltip(p.name||p.id||'Station', {direction:'top', offset:[0,-10], opacity:.92});
 
-    col(north,xLeft,yTop,yJoin-elbow,true,'left');
-    col(south,xRight,yTop,yJoin-elbow,true,'right');
-
-    function col(arr,x,yStart,yEnd,skipLast,side){
-      const n=skipLast?arr.length-1:arr.length, step=(yEnd-yStart)/Math.max(n-1,1);
-      for(let i=0;i<n;i++){
-        const s=arr[i], y=yStart+i*step;
-        dot(x,y,8,colorFor(s));
-        const div=placeHTML(x,y+12,s.name,'middle',160);
-        // simple same-column collision
-        const r=div.getBoundingClientRect(), parent=labels.getBoundingClientRect();
-        let top = div.offsetTop;
-        if(side==='left'){
-          if(top<=lastBottomLeft+6){ const dy=(lastBottomLeft+6)-top; div.style.top=(top+dy)+'px'; }
-          lastBottomLeft = div.offsetTop + r.height;
-        }else{
-          if(top<=lastBottomRight+6){ const dy=(lastBottomRight+6)-top; div.style.top=(top+dy)+'px'; }
-          lastBottomRight = div.offsetTop + r.height;
-        }
-        // clamp x
-        const left=Math.max(60, Math.min(parent.width-60, div.offsetLeft)); div.style.left=left+'px';
-      }
+    if (p.interchange && Ls[1]) {
+      const colorB = LINE_COLORS[Ls[1]] || '#fff';
+      L.circleMarker([lat,lng], { radius:3.4, color:colorB, weight:3, fillColor:'#fff', fillOpacity:1 }).addTo(stationsLayer);
     }
-  }else{
-    const xL=60, xJoin=1080, elbow=32, yTop=92, yBot=184, yJoin=(yTop+yBot)/2;
-    rail(xL,yTop,xJoin-elbow,yTop); rail(xL,yBot,xJoin-elbow,yBot);
-    rail(xJoin-elbow,yTop,xJoin,yJoin); rail(xJoin-elbow,yBot,xJoin,yJoin);
-    dot(xJoin,yJoin,11,ic(),true); label(xJoin+6,yJoin+26,'Line change','middle',-28);
-
-    const east=stations.slice(interIdx).reverse(), west=stations.slice(0,interIdx+1);
-    row(east,yTop,xL,xJoin-elbow,true); row(west,yBot,xL,xJoin-elbow,true);
-
-    function row(arr,y,xStart,xEnd,skipLast){
-      const n=skipLast?arr.length-1:arr.length, step=(xEnd-xStart)/Math.max(n-1,1);
-      for(let i=0;i<n;i++){ const s=arr[i], x=xStart+i*step; dot(x,y,8,colorFor(s)); label(x+10,y-16,s.name,'start',-28); }
-    }
-  }
-
-  /* primitives */
-  function rail(x1,y1,x2,y2){ svg.appendChild(el('line',{x1,y1,x2,y2,stroke:line.color,'stroke-width':5})); }
-  function dot(x,y,r,c,thick=false){ svg.appendChild(el('circle',{cx:x,cy:y,r,fill:c,stroke:'#0b0f15','stroke-width':thick?4:3})); }
-  function label(x,y,t,anchor='start',rot=-28){ const n=el('text',{x,y,'text-anchor':anchor,'class':'slabel'}); n.setAttribute('transform',`rotate(${rot} ${x},${y})`); n.textContent=t; svg.appendChild(n); }
-  function placeHTML(xSvg,ySvg,text,anchor='middle',maxW=200){
-    const pt=svg.createSVGPoint(); pt.x=xSvg; pt.y=ySvg;
-    const screen=pt.matrixTransform(svg.getScreenCTM());
-    const sbox=svg.getBoundingClientRect();
-    const left=screen.x - sbox.left; const top=screen.y - sbox.top + 6;
-
-    const div=document.createElement('div'); div.className='station-label'; div.style.maxWidth=maxW+'px';
-    div.textContent=text; $('#stationLabels').appendChild(div);
-    // position centered under node
-    div.style.left = left+'px'; div.style.top = top+'px';
-    return div;
-  }
-  function colorFor(s){return s.interchanges?.length?LINE_COLORS[s.interchanges[0].line]:line.color}
-  function ic(){return stations[interIdx].interchanges?.length?LINE_COLORS[stations[interIdx].interchanges[0].line]:line.color}
-  function el(n,attrs){const e=document.createElementNS('http://www.w3.org/2000/svg',n); for(const k in attrs) e.setAttribute(k,attrs[k]); return e;}
-}
-
-/* ----- timings: same as before ----- */
-function trainIcon(){return `<svg class="train" viewBox="0 0 64 32" aria-hidden="true"><rect x="6" y="8" width="52" height="16" rx="3" fill="currentColor" opacity="0.85"></rect><rect x="10" y="11" width="10" height="6" rx="1" fill="#0b0f15"></rect><rect x="22" y="11" width="10" height="6" rx="1" fill="#0b0f15"></rect><rect x="34" y="11" width="10" height="6" rx="1" fill="#0b0f15"></rect><circle cx="18" cy="26" r="3" fill="currentColor"></circle><circle cx="46" cy="26" r="3" fill="currentColor"></circle></svg>`;}
-function computeScale(routes){const START=5*60; let end=23*60; for(const k in (routes||{})){const r=routes[k]; if(r?.last){const m=toMin(r.last); if(m>end) end=m;}} if(end<20*60) end=23*60; return {start:START,end};}
-function drawGridlines(bar,sc,mode){const span=sc.end-sc.start; bar.querySelectorAll('.gridline').forEach(n=>n.remove()); if(mode==='h'){for(let h=5;h<=Math.floor(sc.end/60);h++){const m=h*60,pos=((m-sc.start)/span)*100; const g=document.createElement('div');g.className='gridline';g.style.left=pos+'%';g.style.top='0';g.style.bottom='0';g.style.width='1px';bar.appendChild(g);}} else {for(let h=5;h<=Math.floor(sc.end/60);h++){const m=h*60,pos=((m-sc.start)/span)*100; const g=document.createElement('div');g.className='gridline';g.style.top=pos+'%';g.style.left='0';g.style.right='0';g.style.height='1px';bar.appendChild(g);}}}
-function renderChart(rootId,route,sc,mode){
-  const bar=$(`#bar-${rootId}`), gut=$(`#gut-${rootId}`), ticks=$(`#ticks-${rootId}`); if(!bar) return;
-  bar.classList.toggle('h',mode==='h'); bar.classList.toggle('v',mode==='v');
-  bar.innerHTML=''; if(ticks) ticks.innerHTML=''; bar.dataset.mode=mode; bar.dataset.start=sc.start; bar.dataset.end=sc.end;
-  if(gut){gut.innerHTML=''; if(mode==='v'){for(let h=5;h<=Math.floor(sc.end/60);h++){const d=document.createElement('div');d.textContent=hour12(h);gut.appendChild(d);}}}
-  drawGridlines(bar,sc,mode);
-  const span=sc.end-sc.start;
-  (route?.windows||[]).forEach(([s,e,f,label])=>{
-    const sm=toMin(s), em=toMin(e), seg=document.createElement('div'); seg.className=`seg ${label}`;
-    if(mode==='v'){seg.style.left='0';seg.style.right='0';seg.style.top=((sm-sc.start)/span*100)+'%';seg.style.height=Math.max(0,(em-sm)/span*100)+'%'; seg.innerHTML=`<div style="font-size:12px">${trainIcon()} every ${f}<small>${label}</small></div>`;}
-    else{seg.style.top='0';seg.style.bottom='0';seg.style.left=((sm-sc.start)/span*100)+'%';seg.style.width=Math.max(0,(em-sm)/span*100)+'%'; seg.innerHTML=`<div>${trainIcon()}every ${f}<small>${label}</small></div>`;}
-    bar.appendChild(seg);
+    Ls.forEach(LN => { const q = +p[seqKey(LN)]; if (Number.isFinite(q)) byLine[LN]?.push({seq:q, lat, lng}); });
   });
-  const first=$(`#first-${rootId}`), last=$(`#last-${rootId}`); if(first) first.textContent=route?.first||'—'; if(last) last.textContent=route?.last||'—';
-  if(mode==='h'&&ticks){const endHour=Math.max(23,Math.floor(sc.end/60)), cols=(endHour-5)+1; ticks.style.setProperty('--tickcols',cols); for(let h=5;h<=endHour;h++){const el=document.createElement('div'); el.textContent=hour12(h); ticks.appendChild(el);} }
-  const now=new Date(), nowMin=now.getHours()*60+now.getMinutes(), pos=((nowMin-sc.start)/span)*100;
-  const nl=document.createElement('div'); nl.className='now-line'; const tag=document.createElement('div'); tag.className='now-tag'; tag.textContent='NOW';
-  if(mode==='v'){nl.style.left='0';nl.style.right='0';nl.style.height='2px';nl.style.top=pos+'%'; tag.style.right='6px'; tag.style.top=pos+'%';}
-  else{nl.style.top='0';nl.style.bottom='0';nl.style.width='2px';nl.style.left=pos+'%'; tag.style.top='-22px'; tag.style.left=pos+'%';}
-  bar.appendChild(nl); bar.appendChild(tag);
+
+  Object.entries(byLine).forEach(([LN, arr])=>{
+    if (!arr.length) return;
+    arr.sort((a,b)=>a.seq-b.seq);
+    const latlngs = arr.map(pt => { const ll=[pt.lat,pt.lng]; bounds.push(ll); return ll; });
+    L.polyline(latlngs, { color:LINE_COLORS[LN], weight:5, opacity:.9, lineJoin:'round' }).addTo(lines[LN]);
+  });
+
+  if (bounds.length) map.fitBounds(L.latLngBounds(bounds), { padding:[20,20] });
 }
-function updateNowLines(){document.querySelectorAll('.bar').forEach(bar=>{const s=+bar.dataset.start,e=+bar.dataset.end,mode=bar.dataset.mode||'h'; if(!s||!e) return; const span=e-s, now=new Date(), nowMin=now.getHours()*60+now.getMinutes(), pos=((nowMin-s)/span)*100+'%'; const l=bar.querySelector('.now-line'), t=bar.querySelector('.now-tag'); if(!l||!t) return; if(mode==='v'){l.style.top=pos; t.style.top=pos;} else {l.style.left=pos; t.style.left=pos;} });}
-
-/* ----- day wiring ----- */
-function detectDefaultDay(){ return (new Date().getDay()===0)?'sunday':'weekday'; }
-function activateDayChip(day){ document.querySelectorAll('#dayChips .chip').forEach(ch=>{ const on=ch.dataset.day===day; ch.classList.toggle('active',on); ch.setAttribute('aria-selected', on?'true':'false'); }); }
-function routesForDay(L,d){ return L.days[d] ? L.days[d].routes || L.days[d] : {}; }
-function renderDay(L,d){ activateDayChip(d); const routes=routesForDay(L,d); const mode=isMobile()?'v':'h'; const sc=computeScale(routes);
-  renderChart('w2c',routes.WHITEFIELD_TO_CHALLAGHATTA||null,sc,mode);
-  renderChart('c2w',routes.CHALLAGHATTA_TO_WHITEFIELD||null,sc,mode);
-  const open=$('#moreWrap').classList.contains('open');
-  if(open){ renderChart('m2w',routes.MYSURU_TO_WHITEFIELD||null,sc,mode); renderChart('g2c',routes.GARUDACHAR_TO_CHALLAGHATTA||null,sc,mode); }
-  else{ ['m2w','g2c'].forEach(id=>{ $(`#bar-${id}`).innerHTML=''; $(`#ticks-${id}`).innerHTML=''; }); }
-  updateNowLines();
-}
-
-/* ----- boot ----- */
-const data = await loadData();
-const LINE = assembleLine(data);
-$('#lineMeta').textContent = LINE.name;
-setTheme(LINE.color);
-drawStations(LINE);
-renderDay(LINE, detectDefaultDay());
-setInterval(updateNowLines, 15000);
-
-$('#dayChips').addEventListener('click', e=>{ if(e.target.matches('.chip')) renderDay(LINE, e.target.dataset.day); });
-$('#toggleMore').addEventListener('click', e=>{
-  const wrap=$('#moreWrap'); const open=!wrap.classList.contains('open');
-  wrap.classList.toggle('open',open); wrap.setAttribute('aria-hidden',open?'false':'true');
-  e.target.setAttribute('aria-expanded',open?'true':'false');
-  e.target.textContent=open?'Hide in-between station services':'See trains starting from in-between stations';
-  renderDay(LINE, document.querySelector('#dayChips .chip.active')?.dataset.day || detectDefaultDay());
-});
-
-/* reflow on size/orientation */
-mm.addEventListener('change', ()=>{ drawStations(LINE); renderDay(LINE, document.querySelector('#dayChips .chip.active')?.dataset.day || detectDefaultDay()); });
-window.addEventListener('resize', ()=>{ drawStations(LINE); renderDay(LINE, document.querySelector('#dayChips .chip.active')?.dataset.day || detectDefaultDay()); });
 </script>
 </body>
 </html>
