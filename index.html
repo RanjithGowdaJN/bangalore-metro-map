@@ -17,7 +17,7 @@
   .sub{color:var(--muted);text-align:center;margin:0 0 14px}
   .map-wrap{background:var(--card);border:1px solid var(--hair);border-radius:14px;overflow:hidden}
 
-  /* ⬆︎ Taller on desktop so the network breathes */
+  /* Taller on desktop so the network breathes */
   #map{height:clamp(560px,72vh,840px)}
 
   .legend{
@@ -28,15 +28,13 @@
   .dot.purple{background:var(--purple)} .dot.green{background:var(--green)} .dot.yellow{background:var(--yellow)}
   .leaflet-tooltip{font-weight:600}
 
-  /* tiny attribution below map (we remove the in-map control) */
-  .att{color:#64748b;text-align:center;font-size:12px;margin-top:6px}
-
-  /* First-fold: on mobile, fill viewport and make zoom buttons comfy */
+  /* First-fold: on mobile, reduce map to ~80% of screen and make zoom buttons comfy */
   @media (max-width:640px){
-    :root{ --fold-offset: 210px; } /* tweak ±10–20px if header changes */
-    #map{ height: calc(100vh - var(--fold-offset)); }
+    :root{ --fold-offset: 210px; } /* header+legend allowance */
+    /* Use the smaller of (80vh) and (full viewport minus header) */
+    #map{ height: min(80vh, calc(100vh - var(--fold-offset))); }
 
-    /* move zoom control inward and above bottom browser bar / iOS safe area */
+    /* move zoom control inward and above bottom bars / safe area */
     .leaflet-bottom.leaflet-right{
       right: 12px;
       bottom: calc(12px + env(safe-area-inset-bottom));
@@ -50,7 +48,7 @@
     .sub{ font-size:14px }
   }
 
-  /* soften button corners against dark bg (all viewports) */
+  /* soften button corners against dark bg */
   .leaflet-control-zoom a{ border-radius:10px !important; }
 </style>
 </head>
@@ -66,7 +64,6 @@
       <span class="key"><span class="dot green"></span>GREEN</span>
       <span class="key"><span class="dot yellow"></span>YELLOW</span>
     </div>
-    <div class="att">Map data © OpenStreetMap contributors • Tiles from OSM</div>
   </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -77,21 +74,21 @@ const seqKey = (L) => `seq_${L.toLowerCase()}`;
 const BLR = [12.9716, 77.5946];
 const isMobile = window.matchMedia('(max-width: 640px)').matches;
 
-/* device-specific zoom tuning after fitBounds */
-const TUNING = { mobileZoomDelta: -2, desktopZoomDelta: +1 };
+/* zoom tuning after fitBounds: desktop zoom OUT 1, mobile zoom IN 1 vs previous */
+const TUNING = { mobileZoomDelta: -1, desktopZoomDelta: -1 };
 
 /* ===== Map init ===== */
 const map = L.map('map', {
   preferCanvas: true,
   zoomControl: true,
-  attributionControl: false  // we show a tiny attribution below the map instead
+  attributionControl: false
 });
 map.setView(BLR, 11.8);
 
 /* move zoom buttons to bottom-right */
 map.zoomControl.setPosition('bottomright');
 
-/* OSM tiles (attribution lives below the map) */
+/* OSM tiles */
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   detectRetina: true
