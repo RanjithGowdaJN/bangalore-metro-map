@@ -16,7 +16,10 @@
   h1{font-size:clamp(22px,6vw,40px);margin:0 0 6px;text-align:center}
   .sub{color:var(--muted);text-align:center;margin:0 0 14px}
   .map-wrap{background:var(--card);border:1px solid var(--hair);border-radius:14px;overflow:hidden}
-  #map{height:clamp(460px,64vh,720px)}
+
+  /* ⬆︎ Taller on desktop so the network breathes */
+  #map{height:clamp(560px,72vh,840px)}
+
   .legend{
     display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;margin:10px 0 0
   }
@@ -24,19 +27,31 @@
   .dot{width:10px;height:10px;border-radius:50%}
   .dot.purple{background:var(--purple)} .dot.green{background:var(--green)} .dot.yellow{background:var(--yellow)}
   .leaflet-tooltip{font-weight:600}
+
   /* tiny attribution below map (we remove the in-map control) */
   .att{color:#64748b;text-align:center;font-size:12px;margin-top:6px}
-  /* First-fold: on mobile, make the map fill the viewport minus header+legend */
+
+  /* First-fold: on mobile, fill viewport and make zoom buttons comfy */
   @media (max-width:640px){
-    :root{ --fold-offset: 200px; } /* tweak if your header changes */
+    :root{ --fold-offset: 210px; } /* tweak ±10–20px if header changes */
     #map{ height: calc(100vh - var(--fold-offset)); }
+
+    /* move zoom control inward and above bottom browser bar / iOS safe area */
+    .leaflet-bottom.leaflet-right{
+      right: 12px;
+      bottom: calc(12px + env(safe-area-inset-bottom));
+    }
+    /* bigger tap targets for +/− */
+    .leaflet-control-zoom a{
+      width:44px;height:44px;line-height:44px;font-size:20px;border-radius:12px !important;
+    }
+
     h1{ font-size:clamp(22px,6.2vw,28px) }
     .sub{ font-size:14px }
   }
-  /* Optional: soften the zoom buttons look against dark bg */
-  .leaflet-control-zoom a{
-    border-radius:10px !important;
-  }
+
+  /* soften button corners against dark bg (all viewports) */
+  .leaflet-control-zoom a{ border-radius:10px !important; }
 </style>
 </head>
 <body>
@@ -50,6 +65,8 @@
       <span class="key"><span class="dot purple"></span>PURPLE</span>
       <span class="key"><span class="dot green"></span>GREEN</span>
       <span class="key"><span class="dot yellow"></span>YELLOW</span>
+    </div>
+    <div class="att">Map data © OpenStreetMap contributors • Tiles from OSM</div>
   </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -59,6 +76,9 @@ const LINE_COLORS = { PURPLE:"#7c3aed", GREEN:"#10b981", YELLOW:"#f59e0b" };
 const seqKey = (L) => `seq_${L.toLowerCase()}`;
 const BLR = [12.9716, 77.5946];
 const isMobile = window.matchMedia('(max-width: 640px)').matches;
+
+/* device-specific zoom tuning after fitBounds */
+const TUNING = { mobileZoomDelta: -2, desktopZoomDelta: +1 };
 
 /* ===== Map init ===== */
 const map = L.map('map', {
@@ -71,13 +91,13 @@ map.setView(BLR, 11.8);
 /* move zoom buttons to bottom-right */
 map.zoomControl.setPosition('bottomright');
 
-/* OSM tiles (keep attribution below the map for license compliance) */
+/* OSM tiles (attribution lives below the map) */
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   detectRetina: true
 }).addTo(map);
 
-/* make sure layout is correct after fonts/UI render */
+/* ensure layout is correct after fonts/UI render */
 window.addEventListener('load', ()=> map.invalidateSize());
 
 /* Layers */
@@ -157,11 +177,16 @@ function render(gj){
       .addTo(lineLayers[LN]);
   });
 
-  // fit + mobile bump
+  // fit + device-specific zoom delta
   if (bounds.length){
     const pad = isMobile ? [8,8] : [24,24];
     map.fitBounds(L.latLngBounds(bounds), { padding: pad });
-    if (isMobile) map.setZoom(map.getZoom() + 1); // one notch closer on phones
+
+    const dz = isMobile ? TUNING.mobileZoomDelta : TUNING.desktopZoomDelta;
+    if (dz) map.setZoom(map.getZoom() + dz);
+
+    // settle layout after programmatic zoom
+    setTimeout(()=> map.invalidateSize(), 0);
   }
 }
 </script>
