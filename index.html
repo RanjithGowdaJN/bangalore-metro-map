@@ -17,10 +17,12 @@
   .sub{color:var(--muted);text-align:center;margin:0 0 14px}
   .map-wrap{background:var(--card);border:1px solid var(--hair);border-radius:14px;overflow:hidden}
 
-  /* Desktop: taller so the network breathes */
+  /* Fold-1 map height */
   #map{height:clamp(560px,72vh,840px)}
 
-  .legend{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;margin:10px 0 0}
+  .legend{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;margin:10px 0 0
+  }
   .key{display:inline-flex;align-items:center;gap:6px;color:#cbd5e1;font-size:13px}
   .dot{width:10px;height:10px;border-radius:50%}
   .dot.purple{background:var(--purple)} .dot.green{background:var(--green)} .dot.yellow{background:var(--yellow)}
@@ -37,7 +39,12 @@
     }
     h1{ font-size:clamp(22px,6.2vw,28px) } .sub{ font-size:14px }
   }
+  /* soften zoom buttons on dark bg */
   .leaflet-control-zoom a{ border-radius:10px!important; }
+
+  /* ===== Fold-2 base container (feature-specific styles are injected by the module) ===== */
+  #fold2{ margin:40px auto 26px; max-width:1100px; padding:0 12px; }
+  #fold2 h2{ text-align:center; margin:0 0 10px; font-size: clamp(18px,4.8vw,26px); }
 </style>
 </head>
 <body>
@@ -45,6 +52,7 @@
     <h1>Bengaluru’s “Namma Metro” — Map & Timings</h1>
     <p class="sub">Metro routes, timings, frequencies all in one place</p>
 
+    <!-- Fold-1: Map -->
     <div class="map-wrap">
       <div id="map" role="region" aria-label="Bengaluru Metro map"></div>
     </div>
@@ -57,11 +65,33 @@
     <div class="att">Map data © OpenStreetMap contributors • Tiles from OSM</div>
   </div>
 
-  <!-- Leaflet core first (global L), then your feature module -->
+  <!-- Fold-2: Route Diagram -->
+  <section id="fold2" class="wrap">
+    <h2>Metro Route &amp; Timings</h2>
+    <div id="lineChips" role="tablist" aria-label="Choose metro line">
+      <button class="chip" data-line="PURPLE" role="tab" aria-selected="true">Purple Line</button>
+      <button class="chip" data-line="GREEN"  role="tab" aria-selected="false">Green Line</button>
+      <button class="chip" data-line="YELLOW" role="tab" aria-selected="false">Yellow Line</button>
+    </div>
+    <div class="card">
+      <svg id="stationsSvg" viewBox="0 0 1200 360" width="100%" height="360" aria-label="Metro route diagram"></svg>
+    </div>
+  </section>
+
+  <!-- Scripts: Leaflet core, then your feature modules -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module">
     import { init as initMap } from '/assets/feature-map.js';
-    initMap({ containerId: 'map', dataUrl: '/data/stations.geojson' });
+    import { init as initDiagram } from '/assets/feature-diagram.js';
+
+    // Both features read the same data file
+    const DATA_URL = '/data/stations.geojson';
+
+    // Fold-1
+    initMap({ containerId: 'map', dataUrl: DATA_URL });
+
+    // Fold-2
+    initDiagram({ svgId: 'stationsSvg', chipsId: 'lineChips', dataUrl: DATA_URL });
   </script>
 </body>
 </html>
