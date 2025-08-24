@@ -5,187 +5,26 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Bengaluru Metro — Map & Timings</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<style>
-  :root{
-    --purple:#7c3aed; --green:#10b981; --yellow:#f59e0b;
-    --ink:#e5e7eb; --muted:#94a3b8; --bg:#0b1120; --card:#0e1726; --hair:#1e293b;
-  }
-  html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
-  .wrap{max-width:1100px;margin:22px auto;padding:0 12px}
-  h1{font-size:clamp(22px,6vw,40px);margin:0 0 6px;text-align:center}
-  .sub{color:var(--muted);text-align:center;margin:0 0 14px}
-  .map-wrap{background:var(--card);border:1px solid var(--hair);border-radius:14px;overflow:hidden}
-
-  /* Taller on desktop so the network breathes */
-  #map{height:clamp(560px,72vh,840px)}
-
-  .legend{
-    display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;margin:10px 0 0
-  }
-  .key{display:inline-flex;align-items:center;gap:6px;color:#cbd5e1;font-size:13px}
-  .dot{width:10px;height:10px;border-radius:50%}
-  .dot.purple{background:var(--purple)} .dot.green{background:var(--green)} .dot.yellow{background:var(--yellow)}
-  .leaflet-tooltip{font-weight:600}
-
-  /* First-fold: on mobile, reduce map to ~80% of screen and make zoom buttons comfy */
-  @media (max-width:640px){
-    :root{ --fold-offset: 210px; } /* header+legend allowance */
-    /* Use the smaller of (80vh) and (full viewport minus header) */
-    #map{ height: min(80vh, calc(100vh - var(--fold-offset))); }
-
-    /* move zoom control inward and above bottom bars / safe area */
-    .leaflet-bottom.leaflet-right{
-      right: 12px;
-      bottom: calc(12px + env(safe-area-inset-bottom));
-    }
-    /* bigger tap targets for +/− */
-    .leaflet-control-zoom a{
-      width:44px;height:44px;line-height:44px;font-size:20px;border-radius:12px !important;
-    }
-
-    h1{ font-size:clamp(22px,6.2vw,28px) }
-    .sub{ font-size:14px }
-  }
-
-  /* soften button corners against dark bg */
-  .leaflet-control-zoom a{ border-radius:10px !important; }
-</style>
+<link rel="stylesheet" href="/assets/app.css"/>
 </head>
 <body>
   <div class="wrap">
     <h1>Bengaluru’s “Namma Metro” — Map & Timings</h1>
     <p class="sub">Metro routes, timings, frequencies all in one place</p>
 
-    <div class="map-wrap"><div id="map" role="region" aria-label="Bengaluru Metro map"></div></div>
+    <div class="map-wrap">
+      <div id="map" role="region" aria-label="Bengaluru Metro map"></div>
+    </div>
 
     <div class="legend" aria-hidden="true">
       <span class="key"><span class="dot purple"></span>PURPLE</span>
       <span class="key"><span class="dot green"></span>GREEN</span>
       <span class="key"><span class="dot yellow"></span>YELLOW</span>
     </div>
+    <div class="att">Map data © OpenStreetMap contributors • Tiles from OSM</div>
   </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-/* ===== Config & helpers ===== */
-const LINE_COLORS = { PURPLE:"#7c3aed", GREEN:"#10b981", YELLOW:"#f59e0b" };
-const seqKey = (L) => `seq_${L.toLowerCase()}`;
-const BLR = [12.9716, 77.5946];
-const isMobile = window.matchMedia('(max-width: 640px)').matches;
-
-/* zoom tuning after fitBounds: desktop zoom OUT 1, mobile zoom IN 1 vs previous */
-const TUNING = { mobileZoomDelta: -1, desktopZoomDelta: -1 };
-
-/* ===== Map init ===== */
-const map = L.map('map', {
-  preferCanvas: true,
-  zoomControl: true,
-  attributionControl: false
-});
-map.setView(BLR, 11.8);
-
-/* move zoom buttons to bottom-right */
-map.zoomControl.setPosition('bottomright');
-
-/* OSM tiles */
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  detectRetina: true
-}).addTo(map);
-
-/* ensure layout is correct after fonts/UI render */
-window.addEventListener('load', ()=> map.invalidateSize());
-
-/* Layers */
-const lineLayers = {
-  PURPLE: L.layerGroup().addTo(map),
-  GREEN:  L.layerGroup().addTo(map),
-  YELLOW: L.layerGroup().addTo(map)
-};
-const stationLayer = L.layerGroup().addTo(map);
-
-/* ===== Load stations.geojson (tries a couple of paths) ===== */
-(async function loadStations(){
-  const CANDIDATES = ['/data/stations.geojson','/stations.geojson','data/stations.geojson','stations.geojson'];
-  let gj=null, used=null;
-  for (const url of CANDIDATES){
-    try{
-      const res = await fetch(url, { cache:'no-store' });
-      if (!res.ok) { console.warn('[stations] not found:', url, res.status); continue; }
-      gj = await res.json(); used = url; break;
-    }catch(e){ console.warn('[stations] fetch error:', url, e?.message || e); }
-  }
-  if (!gj || !Array.isArray(gj.features) || !gj.features.length){
-    L.marker(BLR).addTo(map).bindPopup('Add <code>/data/stations.geojson</code> to draw the network.');
-    console.warn('[stations] load failed or empty.');
-    return;
-  }
-  console.log('[stations] loaded:', used, 'features =', gj.features.length);
-  render(gj);
-})();
-
-/* ===== Render lines + stations ===== */
-function render(gj){
-  const byLine = { PURPLE:[], GREEN:[], YELLOW:[] };
-  const bounds = [];
-
-  // mobile-friendly marker sizing
-  const R  = isMobile ? 4.8 : 6.5;  // outer
-  const Ri = isMobile ? 2.6 : 3.4;  // inner (for interchange)
-  const W  = isMobile ? 2.0 : 2.5;  // stroke
-
-  gj.features.forEach(f=>{
-    const p = f.properties || {};
-    const [lng,lat] = f.geometry.coordinates;
-    const lines = Array.isArray(p.lines)
-      ? p.lines
-      : String(p.lines||'').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean);
-
-    const primary = lines[0];
-    const isInter = !!p.interchange;
-
-    // station marker (dual-ring if interchange)
-    const colorA = LINE_COLORS[primary] || '#fff';
-    L.circleMarker([lat,lng], {
-      radius: R, color: colorA, weight: W, fillColor: '#ffffff', fillOpacity: 1
-    }).addTo(stationLayer).bindTooltip(p.name || p.id || 'Station', { direction:'top', offset:[0,-10], opacity:0.92 });
-
-    if (isInter && lines[1]) {
-      const colorB = LINE_COLORS[lines[1]] || '#fff';
-      L.circleMarker([lat,lng], {
-        radius: Ri, color: colorB, weight: W+0.5, fillColor: '#ffffff', fillOpacity: 1
-      }).addTo(stationLayer);
-    }
-
-    // collect for polyline drawing per line using sequence fields
-    lines.forEach(LN=>{
-      const q = +p[seqKey(LN)];
-      if (Number.isFinite(q)) byLine[LN]?.push({ seq:q, lat, lng });
-    });
-  });
-
-  // draw polylines
-  Object.entries(byLine).forEach(([LN, arr])=>{
-    if (!arr.length) return;
-    arr.sort((a,b)=>a.seq-b.seq);
-    const latlngs = arr.map(pt => { const ll=[pt.lat,pt.lng]; bounds.push(ll); return ll; });
-    L.polyline(latlngs, { color:LINE_COLORS[LN], weight:5, opacity:.9, lineJoin:'round' })
-      .addTo(lineLayers[LN]);
-  });
-
-  // fit + device-specific zoom delta
-  if (bounds.length){
-    const pad = isMobile ? [8,8] : [24,24];
-    map.fitBounds(L.latLngBounds(bounds), { padding: pad });
-
-    const dz = isMobile ? TUNING.mobileZoomDelta : TUNING.desktopZoomDelta;
-    if (dz) map.setZoom(map.getZoom() + dz);
-
-    // settle layout after programmatic zoom
-    setTimeout(()=> map.invalidateSize(), 0);
-  }
-}
-</script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="/assets/app.js"></script>
 </body>
 </html>
