@@ -3,82 +3,168 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>BangaloreMetroMap — Map</title>
+<title>Bengaluru Metro — Map & Timings</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
-  :root{--purple:#7c3aed;--green:#10b981;--yellow:#f59e0b;--ink:#0f172a;--muted:#64748b;--card:#0e1726;--hair:#1e293b}
-  html,body{height:100%} body{margin:0;background:#0b1120;color:#e5e7eb;font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  :root{
+    --purple:#7c3aed; --green:#10b981; --yellow:#f59e0b;
+    --ink:#e5e7eb; --muted:#94a3b8; --bg:#0b1120; --card:#0e1726; --hair:#1e293b;
+  }
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
   .wrap{max-width:1100px;margin:22px auto;padding:0 12px}
-  h1{font-size:clamp(20px,5vw,34px);margin:0 0 6px;text-align:center}
-  p.sub{color:#94a3b8;text-align:center;margin:0 0 14px}
-  .map-wrap{background:#0e1726;border:1px solid var(--hair);border-radius:14px;overflow:hidden}
-  #map{height:clamp(420px,64vh,720px)}
-  .legend{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;margin:10px 0 0}
+  h1{font-size:clamp(22px,6vw,40px);margin:0 0 6px;text-align:center}
+  .sub{color:var(--muted);text-align:center;margin:0 0 14px}
+  .map-wrap{background:var(--card);border:1px solid var(--hair);border-radius:14px;overflow:hidden}
+  #map{height:clamp(460px,64vh,720px)}
+  .legend{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;margin:10px 0 0
+  }
   .key{display:inline-flex;align-items:center;gap:6px;color:#cbd5e1;font-size:13px}
   .dot{width:10px;height:10px;border-radius:50%}
   .dot.purple{background:var(--purple)} .dot.green{background:var(--green)} .dot.yellow{background:var(--yellow)}
   .leaflet-tooltip{font-weight:600}
+  /* tiny attribution below map (we remove the in-map control) */
+  .att{color:#64748b;text-align:center;font-size:12px;margin-top:6px}
+  /* First-fold: on mobile, make the map fill the viewport minus header+legend */
+  @media (max-width:640px){
+    :root{ --fold-offset: 200px; } /* tweak if your header changes */
+    #map{ height: calc(100vh - var(--fold-offset)); }
+    h1{ font-size:clamp(22px,6.2vw,28px) }
+    .sub{ font-size:14px }
+  }
+  /* Optional: soften the zoom buttons look against dark bg */
+  .leaflet-control-zoom a{
+    border-radius:10px !important;
+  }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Bengaluru’s “Namma Metro” Map & Timings</h1>
-    <p class="sub">Check routes, timings, frequencies all in one place</p>
+    <h1>Bengaluru’s “Namma Metro” — Map & Timings</h1>
+    <p class="sub">Check routes at a glance. Interchanges are dual-ring markers.</p>
+
     <div class="map-wrap"><div id="map" role="region" aria-label="Bengaluru Metro map"></div></div>
-    <div class="legend">
+
+    <div class="legend" aria-hidden="true">
       <span class="key"><span class="dot purple"></span>PURPLE</span>
       <span class="key"><span class="dot green"></span>GREEN</span>
       <span class="key"><span class="dot yellow"></span>YELLOW</span>
     </div>
+    <div class="att">Map data © OpenStreetMap contributors • Tiles from OSM</div>
   </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+/* ===== Config & helpers ===== */
 const LINE_COLORS = { PURPLE:"#7c3aed", GREEN:"#10b981", YELLOW:"#f59e0b" };
-const seqKey = L => `seq_${L.toLowerCase()}`;
+const seqKey = (L) => `seq_${L.toLowerCase()}`;
 const BLR = [12.9716, 77.5946];
+const isMobile = window.matchMedia('(max-width: 640px)').matches;
 
-const map = L.map('map', { zoomControl:true });
+/* ===== Map init ===== */
+const map = L.map('map', {
+  preferCanvas: true,
+  zoomControl: true,
+  attributionControl: false  // we show a tiny attribution below the map instead
+});
 map.setView(BLR, 11.8);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  { maxZoom:19, detectRetina:true, attribution:'&copy; OpenStreetMap' }).addTo(map);
 
-const lines = { PURPLE:L.layerGroup().addTo(map),
-                GREEN:L.layerGroup().addTo(map),
-                YELLOW:L.layerGroup().addTo(map) };
-const stationsLayer = L.layerGroup().addTo(map);
+/* move zoom buttons to bottom-right */
+map.zoomControl.setPosition('bottomright');
 
-fetch('/data/stations.geojson', { cache:'no-store' })
-  .then(r=>r.json()).then(gj => render(gj))
-  .catch(e => { console.warn(e); L.marker(BLR).addTo(map).bindPopup('Add /data/stations.geojson'); });
+/* OSM tiles (keep attribution below the map for license compliance) */
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  detectRetina: true
+}).addTo(map);
 
+/* make sure layout is correct after fonts/UI render */
+window.addEventListener('load', ()=> map.invalidateSize());
+
+/* Layers */
+const lineLayers = {
+  PURPLE: L.layerGroup().addTo(map),
+  GREEN:  L.layerGroup().addTo(map),
+  YELLOW: L.layerGroup().addTo(map)
+};
+const stationLayer = L.layerGroup().addTo(map);
+
+/* ===== Load stations.geojson (tries a couple of paths) ===== */
+(async function loadStations(){
+  const CANDIDATES = ['/data/stations.geojson','/stations.geojson','data/stations.geojson','stations.geojson'];
+  let gj=null, used=null;
+  for (const url of CANDIDATES){
+    try{
+      const res = await fetch(url, { cache:'no-store' });
+      if (!res.ok) { console.warn('[stations] not found:', url, res.status); continue; }
+      gj = await res.json(); used = url; break;
+    }catch(e){ console.warn('[stations] fetch error:', url, e?.message || e); }
+  }
+  if (!gj || !Array.isArray(gj.features) || !gj.features.length){
+    L.marker(BLR).addTo(map).bindPopup('Add <code>/data/stations.geojson</code> to draw the network.');
+    console.warn('[stations] load failed or empty.');
+    return;
+  }
+  console.log('[stations] loaded:', used, 'features =', gj.features.length);
+  render(gj);
+})();
+
+/* ===== Render lines + stations ===== */
 function render(gj){
   const byLine = { PURPLE:[], GREEN:[], YELLOW:[] };
   const bounds = [];
 
-  gj.features.forEach(f=>{
-    const p = f.properties||{};
-    const [lng,lat] = f.geometry.coordinates;
-    const Ls = Array.isArray(p.lines) ? p.lines : String(p.lines||'').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean);
-    const primary = Ls[0]; const colorA = LINE_COLORS[primary] || '#fff';
-    const m1 = L.circleMarker([lat,lng], { radius:6.5, color:colorA, weight:2.5, fillColor:'#fff', fillOpacity:1 })
-      .addTo(stationsLayer).bindTooltip(p.name||p.id||'Station', {direction:'top', offset:[0,-10], opacity:.92});
+  // mobile-friendly marker sizing
+  const R  = isMobile ? 4.8 : 6.5;  // outer
+  const Ri = isMobile ? 2.6 : 3.4;  // inner (for interchange)
+  const W  = isMobile ? 2.0 : 2.5;  // stroke
 
-    if (p.interchange && Ls[1]) {
-      const colorB = LINE_COLORS[Ls[1]] || '#fff';
-      L.circleMarker([lat,lng], { radius:3.4, color:colorB, weight:3, fillColor:'#fff', fillOpacity:1 }).addTo(stationsLayer);
+  gj.features.forEach(f=>{
+    const p = f.properties || {};
+    const [lng,lat] = f.geometry.coordinates;
+    const lines = Array.isArray(p.lines)
+      ? p.lines
+      : String(p.lines||'').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean);
+
+    const primary = lines[0];
+    const isInter = !!p.interchange;
+
+    // station marker (dual-ring if interchange)
+    const colorA = LINE_COLORS[primary] || '#fff';
+    L.circleMarker([lat,lng], {
+      radius: R, color: colorA, weight: W, fillColor: '#ffffff', fillOpacity: 1
+    }).addTo(stationLayer).bindTooltip(p.name || p.id || 'Station', { direction:'top', offset:[0,-10], opacity:0.92 });
+
+    if (isInter && lines[1]) {
+      const colorB = LINE_COLORS[lines[1]] || '#fff';
+      L.circleMarker([lat,lng], {
+        radius: Ri, color: colorB, weight: W+0.5, fillColor: '#ffffff', fillOpacity: 1
+      }).addTo(stationLayer);
     }
-    Ls.forEach(LN => { const q = +p[seqKey(LN)]; if (Number.isFinite(q)) byLine[LN]?.push({seq:q, lat, lng}); });
+
+    // collect for polyline drawing per line using sequence fields
+    lines.forEach(LN=>{
+      const q = +p[seqKey(LN)];
+      if (Number.isFinite(q)) byLine[LN]?.push({ seq:q, lat, lng });
+    });
   });
 
+  // draw polylines
   Object.entries(byLine).forEach(([LN, arr])=>{
     if (!arr.length) return;
     arr.sort((a,b)=>a.seq-b.seq);
     const latlngs = arr.map(pt => { const ll=[pt.lat,pt.lng]; bounds.push(ll); return ll; });
-    L.polyline(latlngs, { color:LINE_COLORS[LN], weight:5, opacity:.9, lineJoin:'round' }).addTo(lines[LN]);
+    L.polyline(latlngs, { color:LINE_COLORS[LN], weight:5, opacity:.9, lineJoin:'round' })
+      .addTo(lineLayers[LN]);
   });
 
-  if (bounds.length) map.fitBounds(L.latLngBounds(bounds), { padding:[20,20] });
+  // fit + mobile bump
+  if (bounds.length){
+    const pad = isMobile ? [8,8] : [24,24];
+    map.fitBounds(L.latLngBounds(bounds), { padding: pad });
+    if (isMobile) map.setZoom(map.getZoom() + 1); // one notch closer on phones
+  }
 }
 </script>
 </body>
