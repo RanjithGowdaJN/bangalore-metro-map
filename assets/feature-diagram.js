@@ -27,7 +27,7 @@ export async function init({
   if (!STATIONS) {
     const CANDS = [dataUrl,'/stations.geojson','data/stations.geojson','stations.geojson'];
     for (const u of CANDS) {
-      try { const r = await fetch(u,{cache:'no-store'}); if(r.ok){ const j=await r.json(); if(j?.features?.length){ STATIONS=j; break; } } } catch {}
+      try { const r = await fetch(u,{cache:'no-store'}); if (r.ok) { const j = await r.json(); if (j?.features?.length) { STATIONS = j; break; } } } catch {}
     }
   }
   if (!STATIONS){ console.warn('[diagram] stations not found'); return; }
@@ -48,7 +48,7 @@ export async function init({
   mq.addEventListener?.('change', render);
   window.addEventListener('resize', throttle(render, 120));
 
-  chips.addEventListener('click', (e)=>{
+  chips.addEventListener('click', e=>{
     const b = e.target.closest('.chip'); if(!b) return;
     if (b.dataset.line === activeLine) return;
     chips.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-selected','false'));
@@ -57,18 +57,19 @@ export async function init({
     render();
   });
 
-  window.addEventListener('fold2:navigate', (ev)=>{
+  // deep-link from Fold-1 if needed
+  window.addEventListener('fold2:navigate', ev=>{
     const L = ev?.detail?.line?.toUpperCase(); if (!L || L===activeLine) return;
     const btn = chips.querySelector(`.chip[data-line="${L}"]`); if (btn) btn.click();
   });
 }
 
-/* ---------------- render core ---------------- */
+/* ---------------- renderer ---------------- */
 function renderDiagram(svg, line, GJ, COLORS, isMobile){
   const W = svg.clientWidth || 1100;
   const seqF = `seq_${line.toLowerCase()}`;
 
-  // STRICT: must have seq_<line> AND list <line> in lines[]
+  // STRICT: station must list the line AND have a numeric sequence for it
   const feats = GJ.features
     .filter(f => Array.isArray(f.properties?.lines)
               && f.properties.lines.includes(line)
@@ -78,93 +79,100 @@ function renderDiagram(svg, line, GJ, COLORS, isMobile){
   if (!feats.length){ svg.innerHTML=''; return; }
 
   const LINE = COLORS[line];
-  const anchor = pickAnchorStrict(line, feats);         // center anchor
+  const anchor = pickAnchorStrict(line, feats); // center anchor (Majestic preferred)
   const aSeq = +anchor.properties[seqF];
 
-  // Branches split at anchor
-  const left  = feats.filter(f => +f.properties[seqF] < aSeq);   // one terminal
-  const right = feats.filter(f => +f.properties[seqF] > aSeq);   // other terminal
+  const left  = feats.filter(f => +f.properties[seqF] < aSeq); // branch A
+  const right = feats.filter(f => +f.properties[seqF] > aSeq); // branch B
 
-  // For the dual-ring color, prefer the other line at this interchange
   const otherPref = (line==='PURPLE')?'GREEN':(line==='GREEN'?'PURPLE':'GREEN');
   const otherLine = anchor.properties.lines.find(LN=>LN!==line) || otherPref;
   const OTHER = COLORS[otherLine] || '#fff';
 
   if (!isMobile){
-    // ===== Desktop: CENTER anchor, two parallel rows, equal half-widths =====
+    // ===== Desktop (unchanged): center anchor, two parallel rows, slanted labels =====
     const H=360, CX=W/2, topY=132, botY=228, pad=56;
     svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.setAttribute('height',H); svg.innerHTML='';
 
-    // available width on each side
     const half = W/2 - pad;
-    const stepR = right.length ? half/right.length : half; // px between stations to the right
-    const stepL = left.length  ? half/left.length  : half; // px between stations to the left
+    const stepR = right.length ? half/right.length : half;
+    const stepL = left.length  ? half/left.length  : half;
 
-    // draw rails from center to each side
     lineSeg(svg, CX, topY,  CX + stepR*right.length, topY, LINE, 6);
     lineSeg(svg, CX - stepL*left.length, botY, CX, botY, LINE, 6);
 
     // top row (center -> right)
-    let lastLabelX = -1e9;
-    const minGapTop = 44; // px between labels
+    let lastX = -1e9, minGapTop = 44;
     right.forEach((f,i)=>{
       const x = CX + stepR*(i+1);
       dot(svg,x,topY,6,LINE,3,'#fff');
-      // always label terminals; otherwise thin based on pixel gap
       const isTerminal = (i===right.length-1);
-      if (isTerminal || x-lastLabelX >= minGapTop){
+      if (isTerminal || x-lastX >= minGapTop){
         slanted(svg, f.properties.name, x, topY-12, -26, 'lbl');
-        lastLabelX = x;
+        lastX = x;
       }
     });
 
     // bottom row (left <- center)
-    lastLabelX = 1e9;
-    const minGapBot = 60; // a bit more to keep bottom clean
+    lastX = 1e9; const minGapBot = 60;
     left.slice().reverse().forEach((f,i)=>{
       const x = CX - stepL*(i+1);
       dot(svg,x,botY,6,LINE,3,'#fff');
       const isTerminal = (i===left.length-1);
-      if (isTerminal || lastLabelX - x >= minGapBot){
+      if (isTerminal || lastX - x >= minGapBot){
         slanted(svg, f.properties.name, x, botY+18, 26, 'lbl');
-        lastLabelX = x;
+        lastX = x;
       }
     });
 
-    // center anchor (dual ring) + labels
-    lineSeg(svg, CX, botY, CX, topY, LINE, 6);               // short connector
-    dot(svg, CX, (topY+botY)/2, 8, LINE, 4, '#fff');
-    dot(svg, CX, (topY+botY)/2, 5, OTHER, 4, '#fff');
-    text(svg, anchor.properties.name, CX, (topY+botY)/2 - 18, 'middle', 'lbl anchor', OTHER);
-    text(svg, 'Line change', CX, (topY+botY)/2 + 30, 'middle', 'lbl small');
+    // center anchor + labels
+    lineSeg(svg, CX, botY, CX, topY, LINE, 6);
+    const midY = (topY+botY)/2;
+    dot(svg, CX, midY, 8, LINE, 4, '#fff');
+    dot(svg, CX, midY, 5, OTHER, 4, '#fff');
+    text(svg, anchor.properties.name, CX, midY-18, 'middle', 'lbl anchor', OTHER);
+    text(svg, 'Line change', CX, midY+30, 'middle', 'lbl small');
 
   } else {
-    // ===== Mobile: vertical, anchor at bottom, both branches above =====
-    const count = left.length + right.length + 1;
-    const step = 44;
-    const H = Math.max(520, 80 + step*(count+1));
-    const CX=W/2, baseY=H-40;
-    svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.setAttribute('height',H); svg.innerHTML='';
+    // ===== Mobile: two rails, phase-shifted by half a step, labels outside =====
+    const step = 44;                       // vertical spacing per station
+    const maxLen = Math.max(left.length, right.length);
+    const H = Math.max(560, 110 + step*(maxLen + 1)); // grow to fit
+    const baseY = H - 50;                   // anchor Y (bottom)
+    const CX = W/2;
+    const railGap = clamp(W*0.22, 80, 140); // horizontal distance from center to each rail
+    const xLeft  = CX - railGap;
+    const xRight = CX + railGap;
 
-    // order above anchor: from near-anchor to far terminals (interleaved by branch for variety)
-    const ordered = [...left.slice().reverse(), ...right]; // above; anchor at bottom
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('height', H); svg.innerHTML='';
 
-    // spine
-    lineSeg(svg, CX, baseY - step*(ordered.length), CX, baseY, LINE, 6);
+    // rail extents (top Y per branch); right rail shifted DOWN by step/2
+    const topLeftY  = left.length  ? baseY - step*left.length                : baseY;
+    const topRightY = right.length ? baseY - step*right.length + step/2      : baseY;
+    // rails
+    lineSeg(svg, xLeft,  topLeftY,  xLeft,  baseY, LINE, 6);
+    lineSeg(svg, xRight, topRightY, xRight, baseY, LINE, 6);
 
-    ordered.forEach((f,i)=>{
-      const y = baseY - step*(ordered.length - i);
-      const leftSide = i % 2 === 0;
-      const jitter = (i % 4 === 1) ? -6 : (i % 4 === 3 ? +6 : 0);
-      dot(svg, CX, y, 6, LINE, 3, '#fff');
-      text(svg, f.properties.name, CX + (leftSide?-12:12), y + (leftSide?-10:14)+jitter,
-           leftSide?'end':'start', 'lbl');
+    // LEFT rail stations (count up from anchor)
+    left.slice().reverse().forEach((f,i)=>{
+      const y = baseY - step*(i+1);               // exact steps
+      dot(svg, xLeft, y, 6, LINE, 3, '#fff');
+      const jitter = (i % 2 === 0) ? -6 : +6;     // slight vertical stagger
+      text(svg, f.properties.name, xLeft - 12, y + jitter, 'end', 'lbl');
     });
 
-    // anchor at bottom
+    // RIGHT rail stations (half-step phase shift)
+    right.forEach((f,i)=>{
+      const y = baseY - (step*(i+1) - step/2);    // half-step closer to anchor
+      dot(svg, xRight, y, 6, LINE, 3, '#fff');
+      const jitter = (i % 2 === 0) ? -6 : +6;
+      text(svg, f.properties.name, xRight + 12, y + jitter, 'start', 'lbl');
+    });
+
+    // Anchor (dual ring) at bottom center
     dot(svg, CX, baseY, 6, LINE, 3, '#fff');
     dot(svg, CX, baseY, 4.2, OTHER, 4, '#fff');
-    text(svg, anchor.properties.name, CX, baseY-12, 'middle', 'lbl anchor', OTHER);
+    text(svg, anchor.properties.name, CX, baseY - 12, 'middle', 'lbl anchor', OTHER);
     text(svg, 'Line change', CX, baseY + 18, 'middle', 'lbl small');
   }
 }
@@ -173,45 +181,38 @@ function renderDiagram(svg, line, GJ, COLORS, isMobile){
 function normalize(gj){
   for (const f of gj.features){
     const p=f.properties||(f.properties={});
-    // normalize lines[]
     p.lines = Array.isArray(p.lines)
       ? p.lines.map(s=>String(s).toUpperCase())
       : String(p.lines||'').split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
-    // normalize booleans
     const v = p.interchange;
     p.interchange = (v===true || v===1 || v==='1' || String(v).toLowerCase()==='true');
   }
   return gj;
 }
 
-/* Prefer Majestic for Purple/Green; else strongest interchange near median */
+/* Prefer Majestic for Purple/Green; else strongest interchange nearest median */
 function pickAnchorStrict(line, feats){
   const seqF = `seq_${line.toLowerCase()}`;
   const sorted = feats.slice().sort((a,b)=> (+a.properties[seqF]) - (+b.properties[seqF]));
   const medianSeq = +sorted[Math.floor(sorted.length/2)].properties[seqF];
 
-  // hard preference for Majestic (Kempegowda) when present
-  const MAJ = feats.find(f => f.properties.interchange
-                           && f.properties.lines.includes(line)
-                           && /majestic|kempegowda/i.test(f.properties.name||''));
+  const MAJ = feats.find(f => f.properties.interchange &&
+                              f.properties.lines.includes(line) &&
+                              /majestic|kempegowda/i.test(f.properties.name||''));
   if (MAJ) return MAJ;
 
-  // otherwise: any true interchange with another line, highest degree, closest to median
   const candidates = feats.filter(f => f.properties.interchange &&
                                        f.properties.lines.includes(line) &&
                                        f.properties.lines.some(LN=>LN!==line));
   let best=null;
   for (const s of candidates){
-    const p=s.properties;
-    const degree = p.lines.length;                 // more lines = more “anchor-y”
-    const dist = Math.abs(+p[seqF] - medianSeq);
-    if (!best || degree>best.degree || (degree===best.degree && dist<best.dist)){
-      best = { s, degree, dist };
-    }
+    const p=s.properties, degree=p.lines.length, dist=Math.abs(+p[seqF]-medianSeq);
+    if (!best || degree>best.degree || (degree===best.degree && dist<best.dist)) best={s,degree,dist};
   }
   return (best?.s) || sorted[Math.floor(sorted.length/2)];
 }
 
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
 function injectCss(css){ const s=document.createElement('style'); s.textContent=css; document.head.appendChild(s); }
 function throttle(fn,gap){ let t=0; return (...a)=>{ const n=Date.now(); if(n-t>gap){ t=n; fn(...a);} }; }
 
